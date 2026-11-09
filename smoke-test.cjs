@@ -8,12 +8,35 @@ const {chromium} = require('playwright');
 async function main() {
   const browser = await chromium.launch({headless: true, executablePath: process.env.CHROME_PATH});
   try {
+    const siteUrl = pathToFileURL(path.join(__dirname, 'index.html')).href;
+    const seedContext = await browser.newContext({viewport: {width: 390, height: 844}});
+    const seedPage = await seedContext.newPage();
+    await seedPage.goto(siteUrl);
+    assert.equal(await seedPage.locator('#total').textContent(), '5');
+    assert.equal(await seedPage.locator('#residents-count').textContent(), '4');
+    assert.equal(await seedPage.locator('#employees-count').textContent(), '3');
+    assert.equal(await seedPage.locator('#vendors-count').textContent(), '4');
+    assert.equal(await seedPage.locator('#receipt-items a').count(), 1);
+    assert.match(await seedPage.locator('#receipt-items a').getAttribute('href'), /comprovante-demonstrativo\.html$/);
+    await seedPage.reload();
+    assert.equal(await seedPage.locator('#total').textContent(), '5');
+    await seedPage.locator('.top-nav [data-area="configuracoes"]').click();
+    await seedPage.getByRole('button', {name: 'Adicionar dados fictícios'}).click();
+    assert.equal(await seedPage.locator('#total').textContent(), '5');
+    await seedContext.close();
+
     const context = await browser.newContext({viewport: {width: 390, height: 844}, acceptDownloads: true});
+    await context.addInitScript(() => {
+      if (sessionStorage.getItem('smoke-initialized')) return;
+      localStorage.setItem('plano-trabalho-sqs110f-v1', '[]');
+      localStorage.setItem('gestao-condominial-demo-directory-v1', JSON.stringify({residents: [], employees: [], vendors: []}));
+      sessionStorage.setItem('smoke-initialized', '1');
+    });
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('dialog', dialog => dialog.accept());
-    await page.goto(pathToFileURL(path.join(__dirname, 'index.html')).href);
+    await page.goto(siteUrl);
     assert.equal(await page.getByRole('link', {name: 'Ir para o conteúdo'}).count(), 1);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     if (process.env.PREVIEW_DIR) {
@@ -176,8 +199,15 @@ async function main() {
     await page.locator('#import-file').setInputFiles({name: 'invalido.json', mimeType: 'application/json', buffer: Buffer.from('{"version":2,"activities":[{"id":"x","description":"Teste","actual":"-10"}]}')});
     assert.equal(await page.locator('#total').textContent(), '1');
     assert.match(await page.locator('#message').textContent(), /importação cancelada/i);
+    await page.getByRole('button', {name: 'Adicionar dados fictícios'}).click();
+    assert.equal(await page.locator('#total').textContent(), '6');
+    assert.equal(await page.locator('#residents-count').textContent(), '5');
+    assert.equal(await page.locator('#employees-count').textContent(), '4');
+    assert.equal(await page.locator('#vendors-count').textContent(), '5');
+    await page.getByRole('button', {name: 'Adicionar dados fictícios'}).click();
+    assert.equal(await page.locator('#total').textContent(), '6');
     assert.deepEqual(errors, []);
-    console.log('OK: navegação, cadastros, plano, financeiro e backups v1/v2 em tela de celular');
+    console.log('OK: exemplos, navegação, cadastros, plano, financeiro e backups v1/v2 em tela de celular');
   } finally { await browser.close(); }
 }
 

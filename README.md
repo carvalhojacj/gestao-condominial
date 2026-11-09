@@ -2,6 +2,8 @@
 
 Protótipo acadêmico para apresentar, no celular ou computador, o acompanhamento do plano de trabalho de um condomínio. Foi feito em HTML, CSS e JavaScript, sem pacotes externos nem servidor de dados.
 
+Uma primeira visita recebe automaticamente um conjunto de dados **inteiramente fictícios**: cinco atividades, quatro moradores, três funcionários, quatro empresas e um documento demonstrativo sem validade fiscal ou contábil. Em **Configurações**, o botão **Adicionar dados fictícios** inclui os exemplos que faltarem em um navegador já usado, sem substituir seus registros.
+
 Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 
 ## O que esta versão faz
@@ -24,24 +26,24 @@ O título e o botão do formulário indicam quando uma atividade está em ediç�
 
 ## Como demonstrar
 
-1. Abra o endereço publicado. A página inicial não carrega dados reais.
-2. Na área **Pessoas**, use os botões **Inserir exemplos fictícios** ou crie cadastros de exemplo.
-3. Em **Plano de trabalho**, cadastre uma atividade fictícia ou uma atividade autorizada para a visita. Depois consulte a lista e os filtros.
-4. Em **Financeiro**, confira a diferença entre previsto e realizado e os comprovantes vinculados.
-5. Em **Configurações**, exporte o JSON. A importação substitui os registros atuais após confirmação.
+1. Abra o endereço publicado. A página inicial mostra apenas exemplos fictícios.
+2. Em **Plano de trabalho**, consulte prazos, situações e filtros; depois experimente criar ou editar uma atividade fictícia.
+3. Em **Pessoas**, examine os cadastros de exemplo ou crie outros fictícios.
+4. Em **Financeiro**, confira os valores e abra o documento demonstrativo vinculado à atividade concluída.
+5. Em **Configurações**, use **Adicionar dados fictícios** se este navegador já tinha registros antes desta versão. Exporte o JSON depois da demonstração. A importação substitui os registros atuais após confirmação.
 
 ## Limites
 
-- Os dados ficam somente no navegador e aparelho usados. Abrir o mesmo link em outro celular não mostra os mesmos cadastros. Não há login, sincronização ou banco de dados.
+- Cada navegador recebe uma cópia independente dos exemplos. Registros adicionados ou alterados em um aparelho não aparecem em outro. Não há login, sincronização ou banco de dados.
 - Esta versão pública é apenas para demonstração com dados fictícios. Não cadastre CPF, telefone real, folha de pagamento, inadimplência ou dados financeiros sigilosos.
 - O resumo financeiro é calculado a partir das atividades cadastradas. Não é extrato bancário, escrituração contábil ou prestação de contas.
-- O sistema guarda apenas o link HTTPS de cada comprovante. Os arquivos continuam no serviço onde foram armazenados, e o acesso deve ser configurado nesse serviço.
+- O documento demonstrativo é público e está marcado como fictício. Para comprovantes verdadeiros, o sistema guarda apenas o link HTTPS; configure o acesso no serviço em que o arquivo for armazenado.
 - A periodicidade é informativa; o sistema não gera atividades recorrentes. Crie cada ocorrência separadamente quando precisar de prazo e valor próprios.
 - Guarde o JSON exportado em local privado. Navegação privada, limpeza de dados do navegador ou troca de aparelho podem apagar os cadastros locais.
 
 ## Arquivos para publicação
 
-Publique juntos `index.html`, `styles.css`, `navigation.js`, `ui-feedback.js`, `directory.js` e `app.js`. `package.json` e `smoke-test.cjs` servem apenas ao desenvolvimento. O site publicado continua estático e sem pacotes de produção.
+Publique juntos `index.html`, `styles.css`, `navigation.js`, `ui-feedback.js`, `demo-seed.js`, `directory.js`, `app.js` e `comprovante-demonstrativo.html`. `package.json` e `smoke-test.cjs` servem apenas ao desenvolvimento. O site publicado continua estático e sem pacotes de produção.
 
 ## Teste de desenvolvimento
 

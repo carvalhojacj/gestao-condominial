@@ -13,20 +13,6 @@ const DIRECTORY_FIELDS = {
   employees: ['name', 'job', 'shift', 'status'],
   vendors: ['company', 'service', 'contractEnd', 'status']
 };
-const DIRECTORY_EXAMPLES = {
-  residents: [
-    {unit: '101', name: 'Morador Exemplo A', relationship: 'Proprietário'},
-    {unit: '202', name: 'Moradora Exemplo B', relationship: 'Inquilino'}
-  ],
-  employees: [
-    {name: 'Funcionário Exemplo A', job: 'Portaria', shift: 'Manhã', status: 'Ativo'},
-    {name: 'Funcionária Exemplo B', job: 'Limpeza', shift: 'Tarde', status: 'Ativo'}
-  ],
-  vendors: [
-    {company: 'Empresa Exemplo Elevadores', service: 'Manutenção de elevadores', contractEnd: '2027-06-30', status: 'Ativa'},
-    {company: 'Empresa Exemplo Limpeza', service: 'Limpeza das áreas comuns', contractEnd: '2027-03-31', status: 'Ativa'}
-  ]
-};
 let directory = {residents: [], employees: [], vendors: []};
 let directoryCorrupt = false;
 
@@ -242,8 +228,27 @@ function renderAllDirectory() {
   for (const type of Object.keys(DIRECTORY_FIELDS)) {
     renderDirectory(type);
     document.getElementById(`${type}-count`).textContent = directory[type].length;
+    document.querySelector(`[data-examples="${type}"]`).hidden = window.demoSeed.directory[type].every(seed => directory[type].some(item => item.id === seed.id));
   }
   for (const type of Object.keys(DIRECTORY_FIELDS)) document.getElementById(`${type}-list-count`).textContent = directory[type].length;
+}
+
+function addDemoDirectory(type = null) {
+  if (directoryCorrupt) throw new Error('Os cadastros salvos não puderam ser lidos. Importe uma cópia antes de adicionar exemplos.');
+  const examples = normalizeDirectory(window.demoSeed.directory);
+  const next = {};
+  let added = 0;
+  for (const currentType of Object.keys(DIRECTORY_FIELDS)) {
+    const missing = !type || currentType === type
+      ? examples[currentType].filter(seed => !directory[currentType].some(item => item.id === seed.id))
+      : [];
+    if (directory[currentType].length + missing.length > DIRECTORY_LIMIT) throw new Error('Limite de cadastros atingido.');
+    next[currentType] = [...directory[currentType], ...missing];
+    added += missing.length;
+  }
+  directory = next;
+  renderAllDirectory();
+  return {added, saved: saveDirectory()};
 }
 
 function directoryId() {
@@ -282,21 +287,24 @@ for (const button of document.querySelectorAll('[data-new-directory]')) {
 for (const button of document.querySelectorAll('[data-examples]')) {
   button.addEventListener('click', () => {
     const type = button.dataset.examples;
-    if (directory[type].length) {
-      directoryMessage('Esta lista já contém cadastros. Os exemplos não foram inseridos novamente.', 'notice');
-      return;
+    try {
+      const result = addDemoDirectory(type);
+      directoryMessage(result.added
+        ? result.saved ? `${result.added} cadastros fictícios adicionados.` : 'Exemplos adicionados apenas nesta sessão. Exporte um JSON antes de sair.'
+        : 'Os exemplos desta lista já estão cadastrados.', result.saved ? 'success' : 'notice');
+    } catch (error) {
+      directoryMessage(error.message, 'notice');
     }
-    directory[type] = DIRECTORY_EXAMPLES[type].map(item => normalizeDirectoryRecord(type, {id: directoryId(), ...item}));
-    closeDirectoryForm(type, false);
-    renderAllDirectory();
-    const saved = saveDirectory();
-    directoryMessage(saved ? 'Exemplos fictícios inseridos.' : 'Exemplos inseridos apenas nesta sessão. Exporte um JSON antes de sair.', saved ? 'success' : 'notice');
   });
 }
 
 try {
   const stored = localStorage.getItem(DIRECTORY_KEY);
   if (stored) directory = normalizeDirectory(JSON.parse(stored));
+  else if (window.demoSeed.freshAtLoad) {
+    directory = normalizeDirectory(window.demoSeed.directory);
+    if (!saveDirectory()) directoryMessage('Exemplos carregados apenas nesta sessão. Exporte um JSON antes de sair.', 'notice');
+  }
 } catch {
   directoryCorrupt = true;
   directoryMessage('Os cadastros de demonstração salvos não puderam ser lidos. Importe uma cópia de segurança antes de continuar.', 'notice');
@@ -306,6 +314,7 @@ renderAllDirectory();
 window.demoDirectory = {
   exportData: () => Object.fromEntries(Object.entries(directory).map(([type, items]) => [type, items.map(item => ({...item}))])),
   validateData: normalizeDirectory,
+  addExamples: addDemoDirectory,
   importData: raw => {
     directory = normalizeDirectory(raw);
     directoryCorrupt = false;

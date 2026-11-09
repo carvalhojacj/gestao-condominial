@@ -208,7 +208,7 @@ function renderReceipts() {
     link.href = item.receipt;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = 'Abrir comprovante';
+    link.textContent = item.id.startsWith('demo-') ? 'Abrir documento fictício' : 'Abrir comprovante';
     summary.append(title, meta);
     article.append(summary, link);
     container.append(article);
@@ -388,7 +388,7 @@ function renderActivityList() {
     if (item.supplier) addRecordFact(facts, 'Empresa prestadora', item.supplier);
     details.append(facts);
     if (item.notes) { const note = document.createElement('p'); note.className = 'record-note'; note.textContent = item.notes; details.append(note); }
-    if (item.receipt) { const link = document.createElement('a'); link.href = item.receipt; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Abrir comprovante'; details.append(link); }
+    if (item.receipt) { const link = document.createElement('a'); link.href = item.receipt; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = item.id.startsWith('demo-') ? 'Abrir documento fictício' : 'Abrir comprovante'; details.append(link); }
     article.append(nameCell, badge, deadline, values, actions, details);
     container.append(article);
   }
@@ -449,6 +449,22 @@ for (const id of ['status-filter', 'category-filter', 'nature-filter', 'month-fi
 $('clear-filters').addEventListener('click', clearActivityFilters);
 $('import-trigger').addEventListener('click', () => $('import-file').click());
 
+$('add-demo-data').addEventListener('click', () => {
+  try {
+    if (storageCorrupt) throw new Error('As atividades salvas não puderam ser lidas. Importe uma cópia antes de adicionar exemplos.');
+    const examples = normalizeList(window.demoSeed.activities);
+    const missing = examples.filter(seed => !activities.some(item => item.id === seed.id));
+    if (activities.length + missing.length > MAX_RECORDS) throw new Error('Limite de atividades atingido.');
+    const directoryResult = window.demoDirectory.addExamples();
+    activities = [...activities, ...missing];
+    render();
+    const activitiesSaved = save();
+    const added = missing.length + directoryResult.added;
+    const message = added ? `${added} registros fictícios adicionados.` : 'Todos os exemplos já estão cadastrados neste navegador.';
+    show(activitiesSaved && directoryResult.saved ? message : `${message} Exporte um JSON antes de sair, pois nem tudo foi salvo neste navegador.`, activitiesSaved && directoryResult.saved ? 'success' : 'notice');
+  } catch (error) { show(error.message, 'notice'); }
+});
+
 $('export').addEventListener('click', () => {
   try {
     const backup = {version: 2, exportedAt: new Date().toISOString(), activities, directory: window.demoDirectory.exportData()};
@@ -493,6 +509,10 @@ try {
   storageAvailable = true;
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw) activities = normalizeList(JSON.parse(raw), true);
+  else if (window.demoSeed.freshAtLoad) {
+    activities = normalizeList(window.demoSeed.activities);
+    if (!save()) show('Exemplos carregados apenas nesta sessão. Exporte um JSON antes de sair.', 'notice');
+  }
 } catch (error) {
   if (storageAvailable) {
     storageCorrupt = true;
