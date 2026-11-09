@@ -53,6 +53,9 @@ document.addEventListener('input', event => {
 document.addEventListener('change', event => {
   if (event.target instanceof HTMLElement) clearFieldError(event.target);
 });
+document.addEventListener('click', event => {
+  const link = event.target instanceof Element ? event.target.closest('a[href^="#"]') : null;
+  if (link && link.getAttribute('href') !== '#main-content') showPageMessage('');
+});
 
 window.uiFeedback = {showPageMessage, clearFormErrors, showFormError};
-

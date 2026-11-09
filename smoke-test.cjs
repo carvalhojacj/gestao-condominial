@@ -93,6 +93,7 @@ async function main() {
     assert.match(await page.locator('#difference').textContent(), /20,25/);
 
     await page.locator('.top-nav [data-area="financeiro"]').click();
+    assert.equal(await page.locator('#message').textContent(), '');
     if (process.env.PREVIEW_DIR) await page.screenshot({path: path.join(process.env.PREVIEW_DIR, 'financeiro-mobile.png'), fullPage: true});
     assert.equal(await page.locator('#side-nav a').count(), 2);
     assert.match(await page.locator('#finance-percent').textContent(), /20,3/);
@@ -149,4 +150,3 @@ async function main() {
 }
 
 main().then(() => process.exit(0)).catch(error => { console.error(error); process.exit(1); });
-

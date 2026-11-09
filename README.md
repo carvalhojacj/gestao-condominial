@@ -43,3 +43,4 @@ Com Node.js 22 ou superior, execute `npm install`, `npx playwright install chrom
 
 As fontes consultadas, escolhas de escopo e próximas etapas estão em `PESQUISA_E_ESCOPO.md`.
 
+O diagnóstico, a proposta e a priorização estão em `AUDITORIA_E_PLANO_FRONTEND_2026-11-09.md`. Os resultados observados e os limites dos testes estão em `VALIDACAO_FRONTEND_2026-11-09.md`.

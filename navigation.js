@@ -56,7 +56,7 @@ function renderNavigation() {
   document.querySelectorAll('.top-nav [data-area]').forEach(link => {
     const active = link.dataset.area === areaKey;
     link.classList.toggle('active', active);
-    if (active) link.setAttribute('aria-current', 'page');
+    if (active) link.setAttribute('aria-current', 'true');
     else link.removeAttribute('aria-current');
   });
 
@@ -94,4 +94,3 @@ window.addEventListener('hashchange', () => {
   document.getElementById('page-title').focus();
 });
 renderNavigation();
-

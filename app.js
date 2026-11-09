@@ -348,6 +348,7 @@ function renderActivityList() {
 function editActivity(id) {
   const item = activities.find(record => record.id === id);
   if (!item) return;
+  show('');
   for (const field of FIELDS) $(field).value = item[field];
   $('edit-id').value = id;
   $('form-title').textContent = 'Editar atividade';
@@ -390,7 +391,7 @@ $('activity-form').addEventListener('submit', event => {
   } catch (error) { window.uiFeedback.showFormError($('activity-form'), activityErrorField(error.message), error.message); }
 });
 
-$('cancel-edit').addEventListener('click', () => { resetForm(); window.goToView('plano/atividades'); });
+$('cancel-edit').addEventListener('click', () => { resetForm(); show(''); window.goToView('plano/atividades'); });
 document.addEventListener('click', event => {
   if (event.target instanceof Element && event.target.closest('a[href="#plano/nova"]')) resetForm();
 });
@@ -450,4 +451,3 @@ try {
   } else show('Armazenamento indisponível. Exporte um JSON antes de fechar esta página.', 'notice');
 }
 render();
-
