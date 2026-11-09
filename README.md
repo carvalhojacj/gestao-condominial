@@ -2,7 +2,7 @@
 
 Protótipo estático feito em HTML, CSS e JavaScript, sem pacotes externos nem servidor de dados. Os arquivos necessários para publicar são `index.html` e `app.js`.
 
-Endereço publicado: https://carvalhojacj.github.io/plano-trabalho-condominio/
+Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 
 ## Como usar
 
