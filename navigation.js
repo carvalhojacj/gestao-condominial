@@ -1,0 +1,95 @@
+'use strict';
+
+const NAV_AREAS = {
+  painel: {
+    label: 'Painel',
+    views: [{route: 'painel/visao-geral', label: 'Visão geral', description: 'Acompanhe as atividades e os cadastros de demonstração.'}]
+  },
+  plano: {
+    label: 'Plano de trabalho',
+    views: [
+      {route: 'plano/atividades', label: 'Atividades', description: 'Consulte prazos, situações e responsáveis.'},
+      {route: 'plano/nova', label: 'Nova atividade', description: 'Cadastre ou atualize uma atividade planejada.'}
+    ]
+  },
+  pessoas: {
+    label: 'Pessoas',
+    views: [
+      {route: 'pessoas/moradores', label: 'Moradores', description: 'Vincule moradores fictícios às unidades.'},
+      {route: 'pessoas/funcionarios', label: 'Funcionários', description: 'Registre funções e turnos fictícios.'},
+      {route: 'pessoas/empresas', label: 'Empresas', description: 'Acompanhe serviços e vencimentos fictícios.'}
+    ]
+  },
+  financeiro: {
+    label: 'Financeiro',
+    views: [
+      {route: 'financeiro/previsto-realizado', label: 'Previsto x realizado', description: 'Compare os valores das atividades cadastradas.'},
+      {route: 'financeiro/comprovantes', label: 'Comprovantes', description: 'Localize os links associados às atividades.'}
+    ]
+  },
+  configuracoes: {
+    label: 'Configurações',
+    views: [
+      {route: 'configuracoes/backup', label: 'Cópia de segurança', description: 'Exporte ou restaure os dados deste navegador.'},
+      {route: 'configuracoes/sobre', label: 'Sobre esta versão', description: 'Conheça o alcance e os limites do protótipo.'}
+    ]
+  }
+};
+
+const ROUTES = Object.values(NAV_AREAS).flatMap(area => area.views);
+const DEFAULT_ROUTE = 'painel/visao-geral';
+
+function readRoute() {
+  try {
+    const route = decodeURIComponent(location.hash.slice(1));
+    return ROUTES.some(view => view.route === route) ? route : DEFAULT_ROUTE;
+  } catch { return DEFAULT_ROUTE; }
+}
+
+function renderNavigation() {
+  const route = readRoute();
+  const areaKey = route.split('/')[0];
+  const area = NAV_AREAS[areaKey];
+  const view = area.views.find(item => item.route === route);
+  if (location.hash !== `#${route}`) history.replaceState(null, '', `#${route}`);
+
+  document.querySelectorAll('.top-nav [data-area]').forEach(link => {
+    const active = link.dataset.area === areaKey;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'true');
+    else link.removeAttribute('aria-current');
+  });
+
+  const sideNav = document.getElementById('side-nav');
+  sideNav.replaceChildren();
+  for (const item of area.views) {
+    const link = document.createElement('a');
+    link.href = `#${item.route}`;
+    link.textContent = item.label;
+    if (item.route === route) {
+      link.classList.add('active');
+      link.setAttribute('aria-current', 'page');
+    }
+    sideNav.append(link);
+  }
+  document.getElementById('side-label').textContent = area.label;
+  document.getElementById('breadcrumb').textContent = area.label;
+  document.getElementById('page-title').textContent = view.label;
+  document.getElementById('page-description').textContent = view.description;
+  document.querySelectorAll('[data-view]').forEach(section => {
+    section.hidden = section.dataset.view !== route;
+  });
+}
+
+window.goToView = route => {
+  if (!ROUTES.some(view => view.route === route)) return;
+  if (location.hash === `#${route}`) renderNavigation();
+  else location.hash = route;
+};
+
+window.addEventListener('hashchange', () => {
+  renderNavigation();
+  document.getElementById('page-title').focus();
+});
+renderNavigation();
+
