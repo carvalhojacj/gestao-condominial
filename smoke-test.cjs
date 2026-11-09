@@ -69,6 +69,7 @@ async function main() {
     await page.locator('#side-nav a[href="#plano/nova"]').click();
     await page.locator('#description').fill('Teste de manutenção');
     await page.locator('#category').fill('Manutenção');
+    await page.locator('#owner').fill('Responsável Exemplo');
     await page.locator('#expenseNature').selectOption('Eventual');
     await page.locator('#supplier').fill('Empresa Exemplo');
     await page.locator('#deadline').fill('2026-12-15');
@@ -88,6 +89,7 @@ async function main() {
     assert.match(await page.locator('#difference').textContent(), /10,50/);
     assert.equal(await page.locator('#items .record').count(), 1);
     assert.equal(await page.locator('#activity-list-count').textContent(), '1');
+    assert.match(await page.locator('#items .activity-owner').textContent(), /Responsável Exemplo/);
     assert.equal(await page.locator('#items .activity-list-header span').count(), 5);
     assert.equal(await page.locator('#items .activity-details').getAttribute('open'), null);
     await page.locator('#items .activity-details summary').click();

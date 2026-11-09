@@ -188,7 +188,8 @@ section[data-view] h4 { margin: 25px 0 12px; font-size: 1rem; }
 .activity-row { grid-template-areas: "name status deadline values actions" "details details details details details"; padding: 13px 12px; border-top: 0; border-bottom: 1px solid var(--border); }
 .activity-row:hover { background: var(--surface-muted); }
 .activity-cell--name { grid-area: name; min-width: 0; overflow-wrap: anywhere; }
-.activity-row h4.activity-cell--name { margin: 0 !important; font-size: .92rem !important; }
+.activity-row .activity-cell--name h4 { margin: 0 !important; font-size: .92rem !important; }
+.activity-owner { display: block; margin-top: 3px; color: var(--text-muted); font-size: .77rem; }
 .activity-cell--status { grid-area: status; justify-self: start; }
 .activity-cell--deadline { grid-area: deadline; font-size: .86rem; }
 .activity-cell--values { grid-area: values; min-width: 0; }

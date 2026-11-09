@@ -351,7 +351,13 @@ function renderActivityList() {
   container.append(listHeader);
   for (const item of visible) {
     const article = document.createElement('article'); article.className = 'record activity-grid activity-row';
-    const title = document.createElement('h4'); title.className = 'activity-cell--name'; title.textContent = item.description;
+    const nameCell = document.createElement('div'); nameCell.className = 'activity-cell--name';
+    const title = document.createElement('h4'); title.textContent = item.description; nameCell.append(title);
+    if (item.owner) {
+      const owner = document.createElement('span'); owner.className = 'activity-owner';
+      owner.textContent = `Responsável: ${item.owner}`;
+      nameCell.append(owner);
+    }
     const badge = document.createElement('span'); badge.className = 'status-chip activity-cell--status';
     badge.textContent = effectiveStatus(item);
     if (badge.textContent === 'Concluída') badge.classList.add('is-done');
@@ -379,12 +385,11 @@ function renderActivityList() {
     if (item.periodicity) addRecordFact(facts, 'Periodicidade', item.periodicity);
     if (item.priority === 'Alta') addRecordFact(facts, 'Prioridade', item.priority);
     if (item.executionDate) addRecordFact(facts, 'Execução', formattedDate(item.executionDate));
-    if (item.owner) addRecordFact(facts, 'Responsável', item.owner);
     if (item.supplier) addRecordFact(facts, 'Empresa prestadora', item.supplier);
     details.append(facts);
     if (item.notes) { const note = document.createElement('p'); note.className = 'record-note'; note.textContent = item.notes; details.append(note); }
     if (item.receipt) { const link = document.createElement('a'); link.href = item.receipt; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Abrir comprovante'; details.append(link); }
-    article.append(title, badge, deadline, values, actions, details);
+    article.append(nameCell, badge, deadline, values, actions, details);
     container.append(article);
   }
 }

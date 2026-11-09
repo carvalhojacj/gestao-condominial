@@ -16,7 +16,7 @@ Nas três telas de **Pessoas**, a relação completa aparece primeiro, em linhas
 
 O resumo financeiro mostra uma tabela no computador e cartões com os mesmos valores no celular. A lista de comprovantes mantém o link ao lado da atividade quando há espaço.
 
-A relação de atividades também usa linhas compactas com situação, prazo, valores e ações. A busca fica visível; situação, categoria, natureza e mês ficam em **Filtros adicionais**. **Ver detalhes** abre categoria, responsável, empresa prestadora, diferença de valores, observações e o link do comprovante quando essas informações existirem.
+A relação de atividades também usa linhas compactas com responsável, situação, prazo, valores e ações. A busca fica visível; situação, categoria, natureza e mês ficam em **Filtros adicionais**. **Ver detalhes** abre categoria, empresa prestadora, diferença de valores, observações e o link do comprovante quando essas informações existirem.
 
 O menu superior seleciona uma área; o menu lateral mostra as funções dessa área. No celular, as opções laterais aparecem em uma faixa horizontal abaixo do menu superior.
 
