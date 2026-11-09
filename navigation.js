@@ -25,7 +25,7 @@ const NAV_AREAS = {
     label: 'Financeiro',
     views: [
       {route: 'financeiro/extrato', label: 'Extrato', description: 'Consulte entradas, saídas e saldos do controle demonstrativo.'},
-      {route: 'financeiro/categorias', label: 'Categorias', description: 'Veja o total movimentado por categoria e subcategoria.'},
+      {route: 'financeiro/categorias', label: 'Categorias', description: 'Consulte os totais e organize categorias e subcategorias.'},
       {route: 'financeiro/comprovantes', label: 'Comprovantes', description: 'Localize os links associados às atividades.'}
     ]
   },

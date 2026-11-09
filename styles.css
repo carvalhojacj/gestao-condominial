@@ -278,6 +278,7 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   .metrics-primary, .financial-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard-grid { grid-template-columns: 1fr; }
   .ledger-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .category-summary { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   .site-header { padding: 13px 16px; }

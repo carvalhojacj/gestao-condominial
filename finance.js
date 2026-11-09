@@ -155,6 +155,11 @@
     button.addEventListener('click', callback);
     return button;
   }
+  function namedButton(label, accessibleName, className, callback) {
+    const button = makeButton(label, className, callback);
+    button.setAttribute('aria-label', accessibleName);
+    return button;
+  }
   function actionsFor(record) {
     const actions = document.createElement('div');
     actions.className = 'actions ledger-actions';
@@ -232,8 +237,8 @@
         const name = document.createElement('strong'); name.textContent = category;
         const total = document.createElement('strong'); total.textContent = money(matching.reduce((sum, item) => sum + amountInCents(item.amount), 0));
         const actions = document.createElement('div'); actions.className = 'category-actions';
-        actions.append(makeButton('Editar categoria', 'secondary', () => openCategoryForm(type, category)));
-        actions.append(makeButton('Excluir categoria', 'danger', () => {
+        actions.append(namedButton('Editar', `Editar categoria ${category}`, 'secondary', () => openCategoryForm(type, category)));
+        actions.append(namedButton('Excluir', `Excluir categoria ${category}`, 'danger', () => {
           if (matching.length) { show(`A categoria ${category} possui lançamentos. Exclua ou reclassifique esses lançamentos antes de removê-la.`, 'notice'); return; }
           if (Object.keys(categories[type]).length === 1) { show(`É necessário manter ao menos uma categoria de ${type.toLowerCase()}.`, 'notice'); return; }
           confirmCategoryDeletion(group, `Excluir a categoria ${category} e suas subcategorias?`, () => {
@@ -250,8 +255,8 @@
           const label = document.createElement('span'); label.textContent = `${subcategory} · ${subset.length} ${subset.length === 1 ? 'lançamento' : 'lançamentos'}`;
           const value = document.createElement('span'); value.textContent = money(subset.reduce((sum, item) => sum + amountInCents(item.amount), 0));
           const subActions = document.createElement('div'); subActions.className = 'category-actions';
-          subActions.append(makeButton('Editar subcategoria', 'secondary', () => openSubcategoryForm(type, category, subcategory)));
-          subActions.append(makeButton('Excluir subcategoria', 'danger', () => {
+          subActions.append(namedButton('Editar', `Editar subcategoria ${subcategory} de ${category}`, 'secondary', () => openSubcategoryForm(type, category, subcategory)));
+          subActions.append(namedButton('Excluir', `Excluir subcategoria ${subcategory} de ${category}`, 'danger', () => {
             if (subset.length) { show(`A subcategoria ${subcategory} possui lançamentos. Exclua ou reclassifique esses lançamentos antes de removê-la.`, 'notice'); return; }
             if (subcategories.length === 1) { show(`É necessário manter ao menos uma subcategoria em ${category}.`, 'notice'); return; }
             confirmCategoryDeletion(line, `Excluir a subcategoria ${subcategory}?`, () => {
