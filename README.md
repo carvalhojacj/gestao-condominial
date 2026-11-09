@@ -1,26 +1,39 @@
-# Sistema do plano de trabalho condominial
+# Gestão condominial
 
-Protótipo estático feito em HTML, CSS e JavaScript, sem pacotes externos nem servidor de dados. Os arquivos necessários para publicar são `index.html` e `app.js`.
+Protótipo acadêmico para apresentar, no celular ou computador, o acompanhamento do plano de trabalho de um condomínio. Foi feito em HTML, CSS e JavaScript, sem pacotes externos nem servidor de dados.
 
 Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 
-## Como usar
+## O que esta versão faz
 
-1. Abra o endereço publicado acima em um navegador atualizado no celular que será usado pela administração.
-2. Cadastre cada atividade com descrição e, quando disponíveis, categoria, natureza da despesa, prazo, periodicidade e valor previsto. A natureza segue a separação entre despesas ordinárias e eventuais usada no livro contábil da administração.
-3. Atualize a situação, a data de execução e o valor realizado. Uma atividade marcada como **Concluída** exige data de conclusão.
-4. Use os filtros por situação, categoria e mês do prazo. O painel mostra os totais e a diferença entre realizado e previsto.
-5. Exporte o JSON após cada atualização. Para recuperar os registros, escolha **Importar JSON**; a importação substitui todos os registros atuais após confirmação.
+- **Painel:** mostra atividades, concluídas, em andamento, atrasadas, próximas do prazo e comparação entre valores previstos e realizados.
+- **Plano de trabalho:** cadastra, edita, filtra e exclui atividades. Cada atividade pode ter natureza da despesa, categoria, responsável, empresa prestadora, prazo, situação, valores e link HTTPS de comprovante.
+- **Pessoas:** permite cadastrar unidades e moradores, funcionários e empresas prestadoras para a demonstração. Use apenas nomes e informações fictícias.
+- **Financeiro:** resume os valores das atividades por natureza da despesa e reúne os links dos comprovantes.
+- **Configurações:** exporta e importa uma cópia JSON dos registros. A versão 2 inclui atividades e cadastros de demonstração. Cópias antigas da versão 1 continuam importáveis.
 
-## Limites desta versão
+O menu superior seleciona uma área; o menu lateral mostra as funções dessa área. No celular, as opções laterais aparecem em uma faixa horizontal abaixo do menu superior.
 
-- Os registros ficam apenas no armazenamento do navegador e aparelho utilizado. Não existe sincronização entre celulares, login ou banco de dados. A página pode ser pública sem publicar os registros, mas qualquer pessoa com acesso ao mesmo navegador poderá ver os dados locais.
-- A periodicidade é apenas uma informação do cadastro. O sistema não cria atividades recorrentes automaticamente; cada ocorrência que precise de valor e prazo próprios deve ser cadastrada separadamente.
-- O sistema guarda apenas o link HTTPS do comprovante. O arquivo continua no serviço onde foi armazenado e as permissões de acesso devem ser configuradas nesse serviço.
-- O sistema acompanha atividades do plano de trabalho. Ele não importa o extrato bancário nem substitui o livro contábil e a prestação de contas. Registros existentes e cópias de segurança antigas continuam válidos sem o novo campo de natureza da despesa.
-- Para evitar perda de dados, não dependa de navegação privada nem de abertura direta do arquivo `index.html` pelo gerenciador de arquivos. Use uma página HTTPS e mantenha cópias JSON em local privado.
+## Como demonstrar
 
-## Teste funcional
+1. Abra o endereço publicado. A página inicial não carrega dados reais.
+2. Na área **Pessoas**, use os botões **Inserir exemplos fictícios** ou crie cadastros de exemplo.
+3. Em **Plano de trabalho**, cadastre uma atividade fictícia ou uma atividade autorizada para a visita. Depois consulte a lista e os filtros.
+4. Em **Financeiro**, confira a diferença entre previsto e realizado e os comprovantes vinculados.
+5. Em **Configurações**, exporte o JSON. A importação substitui os registros atuais após confirmação.
 
-O arquivo `smoke-test.cjs` testa cadastro, validação, filtros, edição, exportação, exclusão e restauração. Ele usa Playwright e um navegador Chrome disponíveis apenas no ambiente de desenvolvimento; não é necessário para usar o sistema.
+## Limites
+
+- Os dados ficam somente no navegador e aparelho usados. Abrir o mesmo link em outro celular não mostra os mesmos cadastros. Não há login, sincronização ou banco de dados.
+- Esta versão pública é apenas para demonstração com dados fictícios. Não cadastre CPF, telefone real, folha de pagamento, inadimplência ou dados financeiros sigilosos.
+- O resumo financeiro é calculado a partir das atividades cadastradas. Não é extrato bancário, escrituração contábil ou prestação de contas.
+- O sistema guarda apenas o link HTTPS de cada comprovante. Os arquivos continuam no serviço onde foram armazenados, e o acesso deve ser configurado nesse serviço.
+- A periodicidade é informativa; o sistema não gera atividades recorrentes. Crie cada ocorrência separadamente quando precisar de prazo e valor próprios.
+- Guarde o JSON exportado em local privado. Navegação privada, limpeza de dados do navegador ou troca de aparelho podem apagar os cadastros locais.
+
+## Arquivos para publicação
+
+Publique juntos `index.html`, `styles.css`, `navigation.js`, `directory.js` e `app.js`. O arquivo `smoke-test.cjs` serve apenas para teste no ambiente de desenvolvimento.
+
+As fontes consultadas, escolhas de escopo e próximas etapas estão em `PESQUISA_E_ESCOPO.md`.
 
