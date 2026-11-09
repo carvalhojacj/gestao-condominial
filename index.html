@@ -61,6 +61,7 @@
         <input id="edit-id" type="hidden">
         <label class="wide">Descrição da atividade *<input id="description" maxlength="120" required placeholder="Ex.: manutenção da caixa d'água"></label>
         <label>Categoria<input id="category" maxlength="60" placeholder="Ex.: manutenção"></label>
+        <label>Natureza da despesa<select id="expenseNature"><option value="">Não informada</option><option>Ordinária</option><option>Eventual</option></select></label>
         <label>Responsável<input id="owner" maxlength="80"></label>
         <label>Prazo<input id="deadline" type="date"></label>
         <label>Periodicidade<select id="periodicity"><option>Pontual</option><option>Mensal</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></label>
@@ -80,6 +81,7 @@
         <label>Buscar<input id="search" type="search" placeholder="Descrição ou categoria"></label>
         <label>Filtrar por situação<select id="status-filter"><option value="">Todas</option><option>Não iniciada</option><option>Em andamento</option><option>Concluída</option><option>Atrasada</option><option>Cancelada</option></select></label>
         <label>Categoria<select id="category-filter"><option value="">Todas</option></select></label>
+        <label>Natureza da despesa<select id="nature-filter"><option value="">Todas</option><option>Ordinária</option><option>Eventual</option><option value="none">Não informada</option></select></label>
         <label>Mês do prazo<input id="month-filter" type="month"></label>
       </div>
       <div id="items"></div>
