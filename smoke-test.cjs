@@ -25,11 +25,31 @@ async function main() {
     assert.equal(await seedPage.locator('#total').textContent(), '5');
     await seedContext.close();
 
+    const migrationContext = await browser.newContext({viewport: {width: 390, height: 844}});
+    await migrationContext.addInitScript(() => {
+      if (sessionStorage.getItem('migration-initialized')) return;
+      localStorage.setItem('plano-trabalho-sqs110f-v1', '[]');
+      localStorage.setItem('gestao-condominial-demo-directory-v1', JSON.stringify({
+        residents: [{id: 'previous-resident', unit: '303', name: 'Morador anterior', relationship: 'Outro'}],
+        employees: [], vendors: []
+      }));
+      sessionStorage.setItem('migration-initialized', '1');
+    });
+    const migrationPage = await migrationContext.newPage();
+    await migrationPage.goto(siteUrl);
+    assert.equal(await migrationPage.locator('#total').textContent(), '5');
+    assert.equal(await migrationPage.locator('#residents-count').textContent(), '5');
+    assert.match(await migrationPage.locator('#residents-list').textContent(), /Morador anterior/);
+    await migrationPage.reload();
+    assert.equal(await migrationPage.locator('#residents-count').textContent(), '5');
+    await migrationContext.close();
+
     const context = await browser.newContext({viewport: {width: 390, height: 844}, acceptDownloads: true});
     await context.addInitScript(() => {
       if (sessionStorage.getItem('smoke-initialized')) return;
       localStorage.setItem('plano-trabalho-sqs110f-v1', '[]');
       localStorage.setItem('gestao-condominial-demo-directory-v1', JSON.stringify({residents: [], employees: [], vendors: []}));
+      localStorage.setItem('gestao-condominial-demo-seed-v1', '1');
       sessionStorage.setItem('smoke-initialized', '1');
     });
     const page = await context.newPage();

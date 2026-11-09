@@ -1,15 +1,18 @@
 'use strict';
 
 // Exemplos públicos para a apresentação. IDs fixos permitem inserir o conjunto sem duplicações.
-const DEMO_ACTIVITY_KEY = 'plano-trabalho-sqs110f-v1';
-const DEMO_DIRECTORY_KEY = 'gestao-condominial-demo-directory-v1';
-let freshAtLoad = false;
+const DEMO_SEED_MARKER = 'gestao-condominial-demo-seed-v1';
+let autoAddAtLoad = false;
 try {
-  freshAtLoad = localStorage.getItem(DEMO_ACTIVITY_KEY) === null && localStorage.getItem(DEMO_DIRECTORY_KEY) === null;
+  autoAddAtLoad = localStorage.getItem(DEMO_SEED_MARKER) === null;
 } catch { /* O sistema continuará funcionando sem exemplos persistidos. */ }
 
 window.demoSeed = {
-  freshAtLoad,
+  autoAddAtLoad,
+  markAutoAdded: () => {
+    try { localStorage.setItem(DEMO_SEED_MARKER, '1'); return true; }
+    catch { return false; }
+  },
   activities: [
     {
       id: 'demo-bombas', description: 'Revisão das bombas de água (exemplo)', category: 'Manutenção preventiva',

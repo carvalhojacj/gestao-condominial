@@ -301,10 +301,6 @@ for (const button of document.querySelectorAll('[data-examples]')) {
 try {
   const stored = localStorage.getItem(DIRECTORY_KEY);
   if (stored) directory = normalizeDirectory(JSON.parse(stored));
-  else if (window.demoSeed.freshAtLoad) {
-    directory = normalizeDirectory(window.demoSeed.directory);
-    if (!saveDirectory()) directoryMessage('Exemplos carregados apenas nesta sessão. Exporte um JSON antes de sair.', 'notice');
-  }
 } catch {
   directoryCorrupt = true;
   directoryMessage('Os cadastros de demonstração salvos não puderam ser lidos. Importe uma cópia de segurança antes de continuar.', 'notice');

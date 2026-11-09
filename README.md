@@ -2,7 +2,7 @@
 
 Protótipo acadêmico para apresentar, no celular ou computador, o acompanhamento do plano de trabalho de um condomínio. Foi feito em HTML, CSS e JavaScript, sem pacotes externos nem servidor de dados.
 
-Uma primeira visita recebe automaticamente um conjunto de dados **inteiramente fictícios**: cinco atividades, quatro moradores, três funcionários, quatro empresas e um documento demonstrativo sem validade fiscal ou contábil. Em **Configurações**, o botão **Adicionar dados fictícios** inclui os exemplos que faltarem em um navegador já usado, sem substituir seus registros.
+O sistema inclui automaticamente, uma única vez, um conjunto de dados **inteiramente fictícios**: cinco atividades, quatro moradores, três funcionários, quatro empresas e um documento demonstrativo sem validade fiscal ou contábil. Isso também ocorre em navegadores já usados, sem substituir registros existentes. Em **Configurações**, o botão **Adicionar dados fictícios** pode repor exemplos excluídos.
 
 Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 
@@ -30,7 +30,7 @@ O título e o botão do formulário indicam quando uma atividade está em ediç�
 2. Em **Plano de trabalho**, consulte prazos, situações e filtros; depois experimente criar ou editar uma atividade fictícia.
 3. Em **Pessoas**, examine os cadastros de exemplo ou crie outros fictícios.
 4. Em **Financeiro**, confira os valores e abra o documento demonstrativo vinculado à atividade concluída.
-5. Em **Configurações**, use **Adicionar dados fictícios** se este navegador já tinha registros antes desta versão. Exporte o JSON depois da demonstração. A importação substitui os registros atuais após confirmação.
+5. Em **Configurações**, use **Adicionar dados fictícios** se quiser repor exemplos excluídos. Exporte o JSON depois da demonstração. A importação substitui os registros atuais após confirmação.
 
 ## Limites
 

@@ -449,7 +449,7 @@ for (const id of ['status-filter', 'category-filter', 'nature-filter', 'month-fi
 $('clear-filters').addEventListener('click', clearActivityFilters);
 $('import-trigger').addEventListener('click', () => $('import-file').click());
 
-$('add-demo-data').addEventListener('click', () => {
+function addDemoData(silent = false) {
   try {
     if (storageCorrupt) throw new Error('As atividades salvas não puderam ser lidas. Importe uma cópia antes de adicionar exemplos.');
     const examples = normalizeList(window.demoSeed.activities);
@@ -461,9 +461,13 @@ $('add-demo-data').addEventListener('click', () => {
     const activitiesSaved = save();
     const added = missing.length + directoryResult.added;
     const message = added ? `${added} registros fictícios adicionados.` : 'Todos os exemplos já estão cadastrados neste navegador.';
-    show(activitiesSaved && directoryResult.saved ? message : `${message} Exporte um JSON antes de sair, pois nem tudo foi salvo neste navegador.`, activitiesSaved && directoryResult.saved ? 'success' : 'notice');
-  } catch (error) { show(error.message, 'notice'); }
-});
+    const saved = activitiesSaved && directoryResult.saved;
+    if (!silent || !saved) show(saved ? message : `${message} Exporte um JSON antes de sair, pois nem tudo foi salvo neste navegador.`, saved ? 'success' : 'notice');
+    return saved;
+  } catch (error) { show(error.message, 'notice'); return false; }
+}
+
+$('add-demo-data').addEventListener('click', () => addDemoData());
 
 $('export').addEventListener('click', () => {
   try {
@@ -509,14 +513,11 @@ try {
   storageAvailable = true;
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw) activities = normalizeList(JSON.parse(raw), true);
-  else if (window.demoSeed.freshAtLoad) {
-    activities = normalizeList(window.demoSeed.activities);
-    if (!save()) show('Exemplos carregados apenas nesta sessão. Exporte um JSON antes de sair.', 'notice');
-  }
 } catch (error) {
   if (storageAvailable) {
     storageCorrupt = true;
     show('Os dados salvos não puderam ser lidos. Importe uma cópia de segurança antes de continuar.', 'notice');
   } else show('Armazenamento indisponível. Exporte um JSON antes de fechar esta página.', 'notice');
 }
+if (window.demoSeed.autoAddAtLoad && !storageCorrupt && addDemoData(true)) window.demoSeed.markAutoAdded();
 render();
