@@ -12,6 +12,8 @@ Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 - **Financeiro:** resume os valores das atividades por natureza da despesa e reúne os links dos comprovantes.
 - **Configurações:** exporta e importa uma cópia JSON dos registros. A versão 2 inclui atividades e cadastros de demonstração. Cópias antigas da versão 1 continuam importáveis.
 
+Nas três telas de **Pessoas**, a relação completa aparece primeiro. Moradores são ordenados por unidade; funcionários e empresas, por nome. O botão de novo cadastro abre o formulário abaixo da lista; ao salvar ou cancelar, a relação volta a ser o foco.
+
 O menu superior seleciona uma área; o menu lateral mostra as funções dessa área. No celular, as opções laterais aparecem em uma faixa horizontal abaixo do menu superior.
 
 O título e o botão do formulário indicam quando uma atividade está em edição. Mensagens de erro apontam o campo que precisa de correção; a exportação informa que o download foi iniciado.

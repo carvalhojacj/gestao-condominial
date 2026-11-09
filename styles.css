@@ -102,6 +102,7 @@ section[data-view] h3 { margin: 0 0 14px; font-size: 1.12rem; letter-spacing: -.
 section[data-view] h4 { margin: 25px 0 12px; font-size: 1rem; }
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
 .section-heading h3 { margin: 0 !important; }
+.list-count { display: inline-block; min-width: 1.6rem; margin-left: 5px; padding: 1px 6px; border-radius: 999px; background: var(--action-soft); color: var(--brand); font-size: .78rem; text-align: center; vertical-align: 1px; }
 .section-kicker { margin: 0 0 2px; color: #657d8c; font-size: .69rem; font-weight: 800; letter-spacing: .08em; }
 .section-intro { margin: -2px 0 20px; color: var(--text-muted); font-size: .92rem; }
 
@@ -146,6 +147,10 @@ section[data-view] h4 { margin: 25px 0 12px; font-size: 1rem; }
 .field-error { display: block; margin-top: 5px; color: #9b3434; font-size: .8rem; font-weight: 600; }
 .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
 .compact-form { padding-bottom: 23px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+.directory-form-panel { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--border); }
+.directory-form-panel h4 { margin: 0 0 14px !important; }
+.directory-form-panel .compact-form { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+.directory-list-actions { justify-content: flex-end; }
 .toolbar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; margin-bottom: 21px; padding: 15px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-muted); }
 .toolbar button { justify-self: start; }
 
@@ -217,6 +222,7 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   .section-heading { align-items: flex-start; }
   .section-heading .button-link, .section-heading button { width: 100%; }
   .section-heading { flex-wrap: wrap; }
+  .directory-list-actions { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

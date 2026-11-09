@@ -3,6 +3,11 @@
 const DIRECTORY_KEY = 'gestao-condominial-demo-directory-v1';
 const DIRECTORY_LIMIT = 200;
 const DIRECTORY_LABELS = {residents: 'morador', employees: 'funcionário', vendors: 'empresa'};
+const DIRECTORY_UI = {
+  residents: {button: 'new-resident', panel: 'resident-form-panel', title: 'resident-form-title', newTitle: 'Novo morador', editTitle: 'Editar morador', emptyLabel: 'Nenhum morador cadastrado.'},
+  employees: {button: 'new-employee', panel: 'employee-form-panel', title: 'employee-form-title', newTitle: 'Novo funcionário', editTitle: 'Editar funcionário', emptyLabel: 'Nenhum funcionário cadastrado.'},
+  vendors: {button: 'new-vendor', panel: 'vendor-form-panel', title: 'vendor-form-title', newTitle: 'Nova empresa', editTitle: 'Editar empresa', emptyLabel: 'Nenhuma empresa cadastrada.'}
+};
 const DIRECTORY_FIELDS = {
   residents: ['unit', 'name', 'relationship'],
   employees: ['name', 'job', 'shift', 'status'],
@@ -133,18 +138,49 @@ function resetDirectoryForm(type) {
   form.querySelector('button[type="submit"]').textContent = `Salvar ${DIRECTORY_LABELS[type]}`;
 }
 
+function closeDirectoryForm(type, focusButton = true) {
+  const ui = DIRECTORY_UI[type];
+  resetDirectoryForm(type);
+  document.getElementById(ui.panel).hidden = true;
+  document.getElementById(ui.title).textContent = ui.newTitle;
+  const button = document.getElementById(ui.button);
+  button.setAttribute('aria-expanded', 'false');
+  if (focusButton) button.focus();
+}
+
+function openDirectoryForm(type, item = null) {
+  const ui = DIRECTORY_UI[type];
+  resetDirectoryForm(type);
+  const form = document.querySelector(`form[data-directory="${type}"]`);
+  if (item) {
+    form.elements.namedItem('id').value = item.id;
+    for (const field of DIRECTORY_FIELDS[type]) form.elements.namedItem(field).value = item[field];
+    form.querySelector('button[type="submit"]').textContent = `Atualizar ${DIRECTORY_LABELS[type]}`;
+  }
+  document.getElementById(ui.title).textContent = item ? ui.editTitle : ui.newTitle;
+  document.getElementById(ui.panel).hidden = false;
+  document.getElementById(ui.button).setAttribute('aria-expanded', 'true');
+  form.scrollIntoView({behavior: 'smooth', block: 'start'});
+  form.querySelector('input:not([type="hidden"])').focus();
+}
+
 function renderDirectory(type) {
   const list = document.getElementById(`${type}-list`);
   list.replaceChildren();
   if (!directory[type].length) {
     const empty = document.createElement('p');
     empty.className = 'empty-state';
-    empty.textContent = 'Nenhum cadastro de demonstração.';
+    empty.textContent = `${DIRECTORY_UI[type].emptyLabel} Use “${DIRECTORY_UI[type].newTitle}” para começar.`;
     list.append(empty);
   }
-  for (const item of directory[type]) {
+  const items = [...directory[type]].sort((a, b) => type === 'residents'
+    ? a.unit.localeCompare(b.unit, 'pt-BR', {numeric: true}) || a.name.localeCompare(b.name, 'pt-BR')
+    : directoryTitle(type, a).localeCompare(directoryTitle(type, b), 'pt-BR'));
+  for (const item of items) {
     const article = document.createElement('article');
     article.className = 'record';
+    article.dataset.recordId = item.id;
+    article.tabIndex = -1;
     const title = document.createElement('h4');
     title.textContent = directoryTitle(type, item);
     article.append(title);
@@ -158,20 +194,14 @@ function renderDirectory(type) {
     edit.type = 'button';
     edit.className = 'secondary';
     edit.textContent = 'Editar';
-    edit.addEventListener('click', () => {
-      const form = document.querySelector(`form[data-directory="${type}"]`);
-      form.elements.namedItem('id').value = item.id;
-      for (const field of DIRECTORY_FIELDS[type]) form.elements.namedItem(field).value = item[field];
-      form.querySelector('button[type="submit"]').textContent = `Atualizar ${DIRECTORY_LABELS[type]}`;
-      form.scrollIntoView({behavior: 'smooth'});
-      form.querySelector('input:not([type="hidden"])').focus();
-    });
+    edit.addEventListener('click', () => openDirectoryForm(type, item));
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'danger';
     remove.textContent = 'Excluir';
     remove.addEventListener('click', () => {
       if (!confirm('Excluir este cadastro de demonstração?')) return;
+      if (document.querySelector(`form[data-directory="${type}"] [name="id"]`).value === item.id) closeDirectoryForm(type, false);
       directory[type] = directory[type].filter(record => record.id !== item.id);
       renderAllDirectory();
       const saved = saveDirectory();
@@ -188,6 +218,7 @@ function renderAllDirectory() {
     renderDirectory(type);
     document.getElementById(`${type}-count`).textContent = directory[type].length;
   }
+  for (const type of Object.keys(DIRECTORY_FIELDS)) document.getElementById(`${type}-list-count`).textContent = directory[type].length;
 }
 
 function directoryId() {
@@ -212,9 +243,15 @@ for (const form of document.querySelectorAll('form[data-directory]')) {
       renderAllDirectory();
       const saved = saveDirectory();
       directoryMessage(saved ? 'Cadastro salvo. Exporte uma cópia de segurança depois da atualização.' : 'Cadastro salvo apenas nesta sessão. Exporte um JSON antes de sair.', saved ? 'success' : 'notice');
+      closeDirectoryForm(type, false);
+      [...document.querySelectorAll(`#${type}-list .record`)].find(article => article.dataset.recordId === record.id)?.focus();
     } catch (error) { window.uiFeedback.showFormError(form, directoryErrorField(type, error.message), error.message); }
   });
-  form.querySelector('[data-cancel]').addEventListener('click', () => resetDirectoryForm(type));
+  form.querySelector('[data-cancel]').addEventListener('click', () => closeDirectoryForm(type));
+}
+
+for (const button of document.querySelectorAll('[data-new-directory]')) {
+  button.addEventListener('click', () => openDirectoryForm(button.dataset.newDirectory));
 }
 
 for (const button of document.querySelectorAll('[data-examples]')) {
@@ -225,6 +262,7 @@ for (const button of document.querySelectorAll('[data-examples]')) {
       return;
     }
     directory[type] = DIRECTORY_EXAMPLES[type].map(item => normalizeDirectoryRecord(type, {id: directoryId(), ...item}));
+    closeDirectoryForm(type, false);
     renderAllDirectory();
     const saved = saveDirectory();
     directoryMessage(saved ? 'Exemplos fictícios inseridos.' : 'Exemplos inseridos apenas nesta sessão. Exporte um JSON antes de sair.', saved ? 'success' : 'notice');
@@ -246,8 +284,8 @@ window.demoDirectory = {
   importData: raw => {
     directory = normalizeDirectory(raw);
     directoryCorrupt = false;
+    for (const type of Object.keys(DIRECTORY_FIELDS)) closeDirectoryForm(type, false);
     renderAllDirectory();
     return saveDirectory();
   }
 };
-

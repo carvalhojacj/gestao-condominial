@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#153d60">
   <title>Gestão condominial</title>
-  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -131,44 +131,53 @@
         </section>
 
         <section data-view="pessoas/moradores" aria-labelledby="residents-title" hidden>
-          <div class="section-heading"><h3 id="residents-title">Unidades e moradores</h3><button type="button" class="secondary" data-examples="residents">Inserir exemplos fictícios</button></div>
-          <p class="section-intro">Cadastro de demonstração com unidade, nome fictício e vínculo. Não registre CPF, telefone ou dados reais nesta versão pública.</p>
-          <form data-directory="residents" class="form-grid compact-form">
-            <input name="id" type="hidden">
-            <label>Unidade *<input name="unit" maxlength="12" required placeholder="Ex.: 101"></label>
-            <label>Nome fictício *<input name="name" maxlength="80" required placeholder="Ex.: Morador Exemplo"></label>
-            <label>Vínculo<select name="relationship"><option>Proprietário</option><option>Inquilino</option><option>Outro</option></select></label>
-            <div class="actions"><button type="submit">Salvar morador</button><button type="button" class="secondary" data-cancel>Cancelar edição</button></div>
-          </form>
+          <div class="section-heading"><h3 id="residents-title">Moradores cadastrados <span id="residents-list-count" class="list-count">0</span></h3><div class="actions directory-list-actions"><button id="new-resident" type="button" data-new-directory="residents" aria-controls="resident-form-panel" aria-expanded="false">Novo morador</button><button type="button" class="secondary" data-examples="residents">Inserir exemplos fictícios</button></div></div>
+          <p class="section-intro">Relação por unidade, com dados fictícios. Não inclua CPF, telefone ou dados reais.</p>
           <div id="residents-list" class="record-list"></div>
+          <div id="resident-form-panel" class="directory-form-panel" role="region" aria-labelledby="resident-form-title" hidden>
+            <h4 id="resident-form-title">Novo morador</h4>
+            <form data-directory="residents" class="form-grid compact-form">
+              <input name="id" type="hidden">
+              <label>Unidade *<input name="unit" maxlength="12" required placeholder="Ex.: 101"></label>
+              <label>Nome fictício *<input name="name" maxlength="80" required placeholder="Ex.: Morador Exemplo"></label>
+              <label>Vínculo<select name="relationship"><option>Proprietário</option><option>Inquilino</option><option>Outro</option></select></label>
+              <div class="actions"><button type="submit">Salvar morador</button><button type="button" class="secondary" data-cancel>Cancelar</button></div>
+            </form>
+          </div>
         </section>
 
         <section data-view="pessoas/funcionarios" aria-labelledby="employees-title" hidden>
-          <div class="section-heading"><h3 id="employees-title">Funcionários</h3><button type="button" class="secondary" data-examples="employees">Inserir exemplos fictícios</button></div>
+          <div class="section-heading"><h3 id="employees-title">Funcionários cadastrados <span id="employees-list-count" class="list-count">0</span></h3><div class="actions directory-list-actions"><button id="new-employee" type="button" data-new-directory="employees" aria-controls="employee-form-panel" aria-expanded="false">Novo funcionário</button><button type="button" class="secondary" data-examples="employees">Inserir exemplos fictícios</button></div></div>
           <p class="section-intro">Diretório de demonstração. Folha, vínculo trabalhista e obrigações do eSocial não fazem parte deste protótipo.</p>
-          <form data-directory="employees" class="form-grid compact-form">
-            <input name="id" type="hidden">
-            <label>Nome fictício *<input name="name" maxlength="80" required placeholder="Ex.: Funcionário Exemplo"></label>
-            <label>Função *<input name="job" maxlength="60" required placeholder="Ex.: portaria"></label>
-            <label>Turno<input name="shift" maxlength="40" placeholder="Ex.: manhã"></label>
-            <label>Situação<select name="status"><option>Ativo</option><option>Inativo</option></select></label>
-            <div class="actions"><button type="submit">Salvar funcionário</button><button type="button" class="secondary" data-cancel>Cancelar edição</button></div>
-          </form>
           <div id="employees-list" class="record-list"></div>
+          <div id="employee-form-panel" class="directory-form-panel" role="region" aria-labelledby="employee-form-title" hidden>
+            <h4 id="employee-form-title">Novo funcionário</h4>
+            <form data-directory="employees" class="form-grid compact-form">
+              <input name="id" type="hidden">
+              <label>Nome fictício *<input name="name" maxlength="80" required placeholder="Ex.: Funcionário Exemplo"></label>
+              <label>Função *<input name="job" maxlength="60" required placeholder="Ex.: portaria"></label>
+              <label>Turno<input name="shift" maxlength="40" placeholder="Ex.: manhã"></label>
+              <label>Situação<select name="status"><option>Ativo</option><option>Inativo</option></select></label>
+              <div class="actions"><button type="submit">Salvar funcionário</button><button type="button" class="secondary" data-cancel>Cancelar</button></div>
+            </form>
+          </div>
         </section>
 
         <section data-view="pessoas/empresas" aria-labelledby="vendors-title" hidden>
-          <div class="section-heading"><h3 id="vendors-title">Empresas prestadoras</h3><button type="button" class="secondary" data-examples="vendors">Inserir exemplos fictícios</button></div>
+          <div class="section-heading"><h3 id="vendors-title">Empresas cadastradas <span id="vendors-list-count" class="list-count">0</span></h3><div class="actions directory-list-actions"><button id="new-vendor" type="button" data-new-directory="vendors" aria-controls="vendor-form-panel" aria-expanded="false">Nova empresa</button><button type="button" class="secondary" data-examples="vendors">Inserir exemplos fictícios</button></div></div>
           <p class="section-intro">Organize a empresa, o serviço e o vencimento previsto do contrato. A conferência do contrato original continua com a administração.</p>
-          <form data-directory="vendors" class="form-grid compact-form">
-            <input name="id" type="hidden">
-            <label>Empresa fictícia *<input name="company" maxlength="100" required placeholder="Ex.: Empresa Exemplo"></label>
-            <label>Serviço *<input name="service" maxlength="80" required placeholder="Ex.: elevadores"></label>
-            <label>Vencimento do contrato<input name="contractEnd" type="date"></label>
-            <label>Situação<select name="status"><option>Ativa</option><option>Encerrada</option></select></label>
-            <div class="actions"><button type="submit">Salvar empresa</button><button type="button" class="secondary" data-cancel>Cancelar edição</button></div>
-          </form>
           <div id="vendors-list" class="record-list"></div>
+          <div id="vendor-form-panel" class="directory-form-panel" role="region" aria-labelledby="vendor-form-title" hidden>
+            <h4 id="vendor-form-title">Nova empresa</h4>
+            <form data-directory="vendors" class="form-grid compact-form">
+              <input name="id" type="hidden">
+              <label>Empresa fictícia *<input name="company" maxlength="100" required placeholder="Ex.: Empresa Exemplo"></label>
+              <label>Serviço *<input name="service" maxlength="80" required placeholder="Ex.: elevadores"></label>
+              <label>Vencimento do contrato<input name="contractEnd" type="date"></label>
+              <label>Situação<select name="status"><option>Ativa</option><option>Encerrada</option></select></label>
+              <div class="actions"><button type="submit">Salvar empresa</button><button type="button" class="secondary" data-cancel>Cancelar</button></div>
+            </form>
+          </div>
         </section>
 
         <section data-view="financeiro/previsto-realizado" aria-labelledby="finance-title" hidden>
@@ -209,7 +218,7 @@
   </div>
   <script src="navigation.js?v=4" defer></script>
   <script src="ui-feedback.js?v=4" defer></script>
-  <script src="directory.js?v=3" defer></script>
+  <script src="directory.js?v=5" defer></script>
   <script src="app.js?v=4" defer></script>
 </body>
 </html>
