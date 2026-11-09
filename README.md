@@ -6,13 +6,15 @@ Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 
 ## O que esta versão faz
 
-- **Painel:** mostra atividades, concluídas, em andamento, atrasadas, próximas do prazo e comparação entre valores previstos e realizados.
+- **Painel:** destaca atividades, concluídas, atrasadas, valores, próximos prazos e ações rápidas.
 - **Plano de trabalho:** cadastra, edita, filtra e exclui atividades. Cada atividade pode ter natureza da despesa, categoria, responsável, empresa prestadora, prazo, situação, valores e link HTTPS de comprovante.
 - **Pessoas:** permite cadastrar unidades e moradores, funcionários e empresas prestadoras para a demonstração. Use apenas nomes e informações fictícias.
 - **Financeiro:** resume os valores das atividades por natureza da despesa e reúne os links dos comprovantes.
 - **Configurações:** exporta e importa uma cópia JSON dos registros. A versão 2 inclui atividades e cadastros de demonstração. Cópias antigas da versão 1 continuam importáveis.
 
 O menu superior seleciona uma área; o menu lateral mostra as funções dessa área. No celular, as opções laterais aparecem em uma faixa horizontal abaixo do menu superior.
+
+O título e o botão do formulário indicam quando uma atividade está em edição. Mensagens de erro apontam o campo que precisa de correção; a exportação informa que o download foi iniciado.
 
 ## Como demonstrar
 
@@ -33,7 +35,11 @@ O menu superior seleciona uma área; o menu lateral mostra as funções dessa á
 
 ## Arquivos para publicação
 
-Publique juntos `index.html`, `styles.css`, `navigation.js`, `directory.js` e `app.js`. O arquivo `smoke-test.cjs` serve apenas para teste no ambiente de desenvolvimento.
+Publique juntos `index.html`, `styles.css`, `navigation.js`, `ui-feedback.js`, `directory.js` e `app.js`. `package.json` e `smoke-test.cjs` servem apenas ao desenvolvimento. O site publicado continua estático e sem pacotes de produção.
+
+## Teste de desenvolvimento
+
+Com Node.js 22 ou superior, execute `npm install`, `npx playwright install chromium`, `npm run check` e `npm test` dentro desta pasta. O Playwright é usado apenas para testar; o visitante do site não precisa instalá-lo. Se o Chromium já estiver disponível, informe seu caminho em `CHROME_PATH` ao executar o teste.
 
 As fontes consultadas, escolhas de escopo e próximas etapas estão em `PESQUISA_E_ESCOPO.md`.
 
