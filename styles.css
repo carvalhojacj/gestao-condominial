@@ -93,8 +93,8 @@ main { min-width: 0; padding: 28px clamp(18px, 3vw, 42px) 64px; }
 .demo-notice { margin: 0 0 17px; padding: 10px 13px; border: 1px solid #e8d6a4; border-radius: 9px; background: #fff9e9; color: #614a18; font-size: .84rem; }
 #message { min-height: 0; margin: 0; }
 #message:not(:empty) { margin-bottom: 16px; padding: 11px 13px; border-radius: 9px; font-size: .9rem; }
-#message.success { color: #185d36; background: #e9f6ed; border: 1px solid #b9dbc4; }
-#message.notice { color: #71400a; background: #fff4e2; border: 1px solid #edd4a1; }
+#message:not(:empty).success { color: #185d36; background: #e9f6ed; border: 1px solid #b9dbc4; }
+#message:not(:empty).notice { color: #71400a; background: #fff4e2; border: 1px solid #edd4a1; }
 
 section[data-view] { padding: clamp(18px, 2.5vw, 28px); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
 section[data-view="painel/visao-geral"] { padding: 0; border: 0; background: transparent; box-shadow: none; }
@@ -223,4 +223,3 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   button, .button-link, .quick-actions a { transition: none; }
   button:active, .button-link:active, .quick-actions a:hover { transform: none; }
 }
-
