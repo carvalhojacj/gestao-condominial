@@ -2,6 +2,7 @@
 
 const DIRECTORY_KEY = 'gestao-condominial-demo-directory-v1';
 const DIRECTORY_LIMIT = 200;
+const DIRECTORY_LABELS = {residents: 'morador', employees: 'funcionário', vendors: 'empresa'};
 const DIRECTORY_FIELDS = {
   residents: ['unit', 'name', 'relationship'],
   employees: ['name', 'job', 'shift', 'status'],
@@ -25,9 +26,17 @@ let directory = {residents: [], employees: [], vendors: []};
 let directoryCorrupt = false;
 
 function directoryMessage(text, type = 'success') {
-  const target = document.getElementById('message');
-  target.textContent = text;
-  target.className = type;
+  window.uiFeedback.showPageMessage(text, type);
+}
+
+function directoryErrorField(type, message) {
+  const common = [[/nome fictício/i, 'name'], [/situação/i, 'status']];
+  const fields = type === 'residents'
+    ? [[/unidade/i, 'unit'], [/vínculo/i, 'relationship'], ...common]
+    : type === 'employees'
+      ? [[/função/i, 'job'], [/turno/i, 'shift'], ...common]
+      : [[/empresa fictícia/i, 'company'], [/serviço/i, 'service'], [/data inválida/i, 'contractEnd'], ...common];
+  return fields.find(([pattern]) => pattern.test(message))?.[1] || '';
 }
 
 function directoryText(value, label, max, required = false) {
@@ -119,7 +128,9 @@ function directoryDetails(type, item) {
 function resetDirectoryForm(type) {
   const form = document.querySelector(`form[data-directory="${type}"]`);
   form.reset();
+  window.uiFeedback.clearFormErrors(form);
   form.elements.namedItem('id').value = '';
+  form.querySelector('button[type="submit"]').textContent = `Salvar ${DIRECTORY_LABELS[type]}`;
 }
 
 function renderDirectory(type) {
@@ -151,6 +162,7 @@ function renderDirectory(type) {
       const form = document.querySelector(`form[data-directory="${type}"]`);
       form.elements.namedItem('id').value = item.id;
       for (const field of DIRECTORY_FIELDS[type]) form.elements.namedItem(field).value = item[field];
+      form.querySelector('button[type="submit"]').textContent = `Atualizar ${DIRECTORY_LABELS[type]}`;
       form.scrollIntoView({behavior: 'smooth'});
       form.querySelector('input:not([type="hidden"])').focus();
     });
@@ -187,6 +199,7 @@ for (const form of document.querySelectorAll('form[data-directory]')) {
   const type = form.dataset.directory;
   form.addEventListener('submit', event => {
     event.preventDefault();
+    window.uiFeedback.clearFormErrors(form);
     try {
       const raw = {id: form.elements.namedItem('id').value || directoryId()};
       for (const field of DIRECTORY_FIELDS[type]) raw[field] = form.elements.namedItem(field).value;
@@ -199,7 +212,7 @@ for (const form of document.querySelectorAll('form[data-directory]')) {
       renderAllDirectory();
       const saved = saveDirectory();
       directoryMessage(saved ? 'Cadastro salvo. Exporte uma cópia de segurança depois da atualização.' : 'Cadastro salvo apenas nesta sessão. Exporte um JSON antes de sair.', saved ? 'success' : 'notice');
-    } catch (error) { directoryMessage(error.message, 'notice'); }
+    } catch (error) { window.uiFeedback.showFormError(form, directoryErrorField(type, error.message), error.message); }
   });
   form.querySelector('[data-cancel]').addEventListener('click', () => resetDirectoryForm(type));
 }
