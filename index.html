@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#153d60">
   <title>Gestão condominial</title>
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -90,17 +90,20 @@
 
         <section data-view="plano/atividades" aria-labelledby="list-title" hidden>
           <div class="section-heading">
-            <h3 id="list-title">Atividades cadastradas</h3>
+            <h3 id="list-title">Atividades <span id="activity-list-count" class="list-count">0</span></h3>
             <a class="button-link" href="#plano/nova">Nova atividade</a>
           </div>
-          <div class="toolbar">
-            <label>Buscar<input id="search" type="search" placeholder="Descrição, categoria ou responsável"></label>
-            <label>Situação<select id="status-filter"><option value="">Todas</option><option>Não iniciada</option><option>Em andamento</option><option>Concluída</option><option>Atrasada</option><option>Cancelada</option></select></label>
-            <label>Categoria<select id="category-filter"><option value="">Todas</option></select></label>
-            <label>Natureza<select id="nature-filter"><option value="">Todas</option><option>Ordinária</option><option>Eventual</option><option value="none">Não informada</option></select></label>
-            <label>Mês do prazo<input id="month-filter" type="month"></label>
-            <button id="clear-filters" type="button" class="subtle">Limpar filtros</button>
-          </div>
+          <label class="activity-search">Buscar<input id="search" type="search" placeholder="Descrição, categoria ou responsável"></label>
+          <details id="activity-filter-panel" class="activity-filter-panel">
+            <summary>Filtros adicionais <span id="active-filter-count"></span></summary>
+            <div class="toolbar">
+              <label>Situação<select id="status-filter"><option value="">Todas</option><option>Não iniciada</option><option>Em andamento</option><option>Concluída</option><option>Atrasada</option><option>Cancelada</option></select></label>
+              <label>Categoria<select id="category-filter"><option value="">Todas</option></select></label>
+              <label>Natureza<select id="nature-filter"><option value="">Todas</option><option>Ordinária</option><option>Eventual</option><option value="none">Não informada</option></select></label>
+              <label>Mês do prazo<input id="month-filter" type="month"></label>
+              <button id="clear-filters" type="button" class="subtle">Limpar filtros</button>
+            </div>
+          </details>
           <div id="items" class="record-list"></div>
         </section>
 
@@ -219,6 +222,6 @@
   <script src="navigation.js?v=4" defer></script>
   <script src="ui-feedback.js?v=4" defer></script>
   <script src="directory.js?v=6" defer></script>
-  <script src="app.js?v=6" defer></script>
+  <script src="app.js?v=8" defer></script>
 </body>
 </html>

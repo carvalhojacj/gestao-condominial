@@ -87,20 +87,30 @@ async function main() {
     assert.equal(await page.locator('#total').textContent(), '1');
     assert.match(await page.locator('#difference').textContent(), /10,50/);
     assert.equal(await page.locator('#items .record').count(), 1);
+    assert.equal(await page.locator('#activity-list-count').textContent(), '1');
+    assert.equal(await page.locator('#items .activity-list-header span').count(), 5);
+    assert.equal(await page.locator('#items .activity-details').getAttribute('open'), null);
+    await page.locator('#items .activity-details summary').click();
+    assert.match(await page.locator('#items .activity-details').textContent(), /Empresa Exemplo/);
+    assert.equal(await page.locator('#items .activity-details a').isVisible(), true);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.reload();
     assert.equal(await page.locator('#total').textContent(), '1');
     assert.equal(await page.locator('#residents-count').textContent(), '1');
 
+    await page.locator('#activity-filter-panel summary').click();
     await page.locator('#category-filter').selectOption('Manutenção');
     await page.locator('#nature-filter').selectOption('Eventual');
     assert.equal(await page.locator('#items .record').count(), 1);
     await page.locator('#nature-filter').selectOption('Ordinária');
     assert.equal(await page.locator('#items .record').count(), 0);
+    assert.equal(await page.locator('#activity-list-count').textContent(), '0');
     await page.locator('#nature-filter').selectOption('Eventual');
     await page.locator('#month-filter').fill('2026-11');
     assert.equal(await page.locator('#items .record').count(), 0);
     await page.getByRole('button', {name: 'Limpar filtros'}).first().click();
     assert.equal(await page.locator('#items .record').count(), 1);
+    assert.equal(await page.locator('#activity-list-count').textContent(), '1');
 
     await page.locator('#items .record').getByRole('button', {name: 'Editar'}).click();
     assert.equal(await page.locator('#page-title').textContent(), 'Editar atividade');

@@ -283,6 +283,7 @@ function render() {
 
 function clearActivityFilters() {
   for (const id of ['search', 'status-filter', 'category-filter', 'nature-filter', 'month-filter']) $(id).value = '';
+  $('activity-filter-panel').open = false;
   renderActivityList();
 }
 
@@ -303,6 +304,8 @@ function renderActivityList() {
   const category = $('category-filter').value;
   const nature = $('nature-filter').value;
   const month = $('month-filter').value;
+  const activeFilters = [status, category, nature, month].filter(Boolean).length;
+  $('active-filter-count').textContent = activeFilters ? `(${activeFilters} ${activeFilters === 1 ? 'ativo' : 'ativos'})` : '';
   const visible = activities.filter(item =>
     (!status || effectiveStatus(item) === status) &&
     (!category || item.category === category) &&
@@ -313,6 +316,7 @@ function renderActivityList() {
 
   const container = $('items');
   container.replaceChildren();
+  $('activity-list-count').textContent = visible.length;
   if (!visible.length) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
@@ -335,35 +339,53 @@ function renderActivityList() {
     container.append(empty);
     return;
   }
+  const listHeader = document.createElement('div');
+  listHeader.className = 'activity-grid activity-list-header';
+  listHeader.setAttribute('aria-hidden', 'true');
+  for (const [area, label] of [['name', 'Atividade'], ['status', 'Situação'], ['deadline', 'Prazo'], ['values', 'Valores'], ['actions', 'Ações']]) {
+    const cell = document.createElement('span');
+    cell.className = `activity-cell--${area}`;
+    cell.textContent = label;
+    listHeader.append(cell);
+  }
+  container.append(listHeader);
   for (const item of visible) {
-    const article = document.createElement('article'); article.className = 'record';
-    const header = document.createElement('div'); header.className = 'record-header';
-    const title = document.createElement('h4'); title.textContent = item.description;
-    const badge = document.createElement('span'); badge.className = 'status-chip';
+    const article = document.createElement('article'); article.className = 'record activity-grid activity-row';
+    const title = document.createElement('h4'); title.className = 'activity-cell--name'; title.textContent = item.description;
+    const badge = document.createElement('span'); badge.className = 'status-chip activity-cell--status';
     badge.textContent = effectiveStatus(item);
     if (badge.textContent === 'Concluída') badge.classList.add('is-done');
     if (badge.textContent === 'Atrasada') badge.classList.add('is-late');
     if (badge.textContent === 'Em andamento') badge.classList.add('is-progress');
-    header.append(title, badge); article.append(header);
-    const meta = document.createElement('div'); meta.className = 'record-meta';
-    meta.textContent = [item.category, item.expenseNature && `Despesa ${item.expenseNature.toLocaleLowerCase('pt-BR')}`, item.periodicity, item.priority === 'Alta' && 'Prioridade alta', item.executionDate && `Execução: ${formattedDate(item.executionDate)}`, item.owner && `Responsável: ${item.owner}`, item.supplier && `Empresa: ${item.supplier}`].filter(Boolean).join(' · ');
-    article.append(meta);
-    const facts = document.createElement('div'); facts.className = 'record-facts';
-    addRecordFact(facts, 'Prazo', item.deadline ? formattedDate(item.deadline) : 'Não informado');
-    addRecordFact(facts, 'Previsto', moneyFromCents(cents(item.budget)));
-    addRecordFact(facts, 'Realizado', moneyFromCents(cents(item.actual)));
-    addRecordFact(facts, 'Diferença', moneyFromCents(cents(item.actual) - cents(item.budget)));
-    article.append(facts);
-    if (item.notes) { const note = document.createElement('p'); note.className = 'record-note'; note.textContent = item.notes; article.append(note); }
-    const actions = document.createElement('div'); actions.className = 'actions';
-    if (item.receipt) { const link = document.createElement('a'); link.href = item.receipt; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Abrir comprovante'; actions.append(link); }
+    const deadline = document.createElement('div'); deadline.className = 'activity-cell--deadline';
+    const deadlineLabel = document.createElement('span'); deadlineLabel.className = 'sr-only'; deadlineLabel.textContent = 'Prazo: ';
+    deadline.append(deadlineLabel, document.createTextNode(item.deadline ? formattedDate(item.deadline) : 'Não informado'));
+    const values = document.createElement('div'); values.className = 'activity-cell--values activity-values';
+    addRecordFact(values, 'Previsto', moneyFromCents(cents(item.budget)));
+    addRecordFact(values, 'Realizado', moneyFromCents(cents(item.actual)));
+    const actions = document.createElement('div'); actions.className = 'actions activity-cell--actions';
     const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'secondary'; edit.textContent = 'Editar'; edit.addEventListener('click', () => editActivity(item.id)); actions.append(edit);
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'danger'; remove.textContent = 'Excluir'; remove.addEventListener('click', () => {
       if (!confirm('Excluir esta atividade?')) return;
       activities = activities.filter(record => record.id !== item.id);
       render(); savedMessage('Atividade excluída.');
     }); actions.append(remove);
-    article.append(actions); container.append(article);
+    const details = document.createElement('details'); details.className = 'activity-cell--details activity-details';
+    const summary = document.createElement('summary'); summary.textContent = 'Ver detalhes'; details.append(summary);
+    const facts = document.createElement('div'); facts.className = 'record-facts activity-detail-grid';
+    addRecordFact(facts, 'Diferença', moneyFromCents(cents(item.actual) - cents(item.budget)));
+    if (item.category) addRecordFact(facts, 'Categoria', item.category);
+    if (item.expenseNature) addRecordFact(facts, 'Natureza da despesa', item.expenseNature);
+    if (item.periodicity) addRecordFact(facts, 'Periodicidade', item.periodicity);
+    if (item.priority === 'Alta') addRecordFact(facts, 'Prioridade', item.priority);
+    if (item.executionDate) addRecordFact(facts, 'Execução', formattedDate(item.executionDate));
+    if (item.owner) addRecordFact(facts, 'Responsável', item.owner);
+    if (item.supplier) addRecordFact(facts, 'Empresa prestadora', item.supplier);
+    details.append(facts);
+    if (item.notes) { const note = document.createElement('p'); note.className = 'record-note'; note.textContent = item.notes; details.append(note); }
+    if (item.receipt) { const link = document.createElement('a'); link.href = item.receipt; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Abrir comprovante'; details.append(link); }
+    article.append(title, badge, deadline, values, actions, details);
+    container.append(article);
   }
 }
 
