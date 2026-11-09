@@ -55,4 +55,5 @@ As fontes consultadas, escolhas de escopo e próximas etapas estão em `PESQUISA
 O diagnóstico, a proposta e a priorização estão em `AUDITORIA_E_PLANO_FRONTEND_2026-11-09.md`. Os resultados observados e os limites dos testes estão em `VALIDACAO_FRONTEND_2026-11-09.md`.
 
 A separação entre planejamento e extrato, com decisões de escopo e fontes, está em `REVISAO_FINANCEIRO_2026-11-09.md`.
+Os testes observados e as verificações ainda pendentes estão em `VALIDACAO_FINANCEIRO_2026-11-09.md`.
 
