@@ -6,7 +6,8 @@ const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
 const STATUSES = ['Não iniciada', 'Em andamento', 'Concluída', 'Cancelada'];
 const PRIORITIES = ['Normal', 'Alta', 'Baixa'];
 const PERIODICITIES = ['Pontual', 'Mensal', 'Trimestral', 'Semestral', 'Anual'];
-const FIELDS = ['description', 'category', 'owner', 'deadline', 'periodicity', 'priority', 'status', 'executionDate', 'budget', 'actual', 'receipt', 'notes'];
+const EXPENSE_NATURES = ['', 'Ordinária', 'Eventual'];
+const FIELDS = ['description', 'category', 'expenseNature', 'owner', 'deadline', 'periodicity', 'priority', 'status', 'executionDate', 'budget', 'actual', 'receipt', 'notes'];
 const $ = id => document.getElementById(id);
 const currency = new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'});
 let activities = [];
@@ -71,6 +72,7 @@ function normalizeRecord(raw, allowLegacyMissingCompletionDate = false) {
     id,
     description: textField(raw.description, 'Descrição da atividade', 120, true),
     category: textField(raw.category ?? '', 'Categoria', 60),
+    expenseNature: raw.expenseNature ?? '',
     owner: textField(raw.owner ?? '', 'Responsável', 80),
     deadline: validDate(raw.deadline ?? '', 'Prazo'),
     periodicity: raw.periodicity ?? 'Pontual',
@@ -83,6 +85,7 @@ function normalizeRecord(raw, allowLegacyMissingCompletionDate = false) {
     notes: textField(raw.notes ?? '', 'Observações', 500)
   };
   if (!PERIODICITIES.includes(record.periodicity)) throw new Error('Periodicidade inválida.');
+  if (!EXPENSE_NATURES.includes(record.expenseNature)) throw new Error('Natureza da despesa inválida.');
   if (!PRIORITIES.includes(record.priority)) throw new Error('Prioridade inválida.');
   if (!STATUSES.includes(record.status)) throw new Error('Situação inválida.');
   if (record.status === 'Concluída' && !record.executionDate && !allowLegacyMissingCompletionDate) {
@@ -156,10 +159,12 @@ function render() {
   const query = $('search').value.trim().toLocaleLowerCase('pt-BR');
   const status = $('status-filter').value;
   const category = $('category-filter').value;
+  const nature = $('nature-filter').value;
   const month = $('month-filter').value;
   const visible = activities.filter(item =>
     (!status || effectiveStatus(item) === status) &&
     (!category || item.category === category) &&
+    (!nature || (nature === 'none' ? !item.expenseNature : item.expenseNature === nature)) &&
     (!month || item.deadline.startsWith(month + '-')) &&
     (!query || `${item.description} ${item.category} ${item.owner}`.toLocaleLowerCase('pt-BR').includes(query))
   ).sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999') || a.description.localeCompare(b.description, 'pt-BR'));
@@ -176,7 +181,7 @@ function render() {
     const article = document.createElement('article'); article.className = 'item';
     const title = document.createElement('h3'); title.textContent = item.description; article.append(title);
     const meta = document.createElement('div'); meta.className = 'meta';
-    meta.textContent = [item.category, item.periodicity, effectiveStatus(item), item.deadline && `Prazo: ${formattedDate(item.deadline)}`, item.executionDate && `Execução: ${formattedDate(item.executionDate)}`, `Previsto: ${moneyFromCents(cents(item.budget))}`, `Realizado: ${moneyFromCents(cents(item.actual))}`, `Diferença: ${moneyFromCents(cents(item.actual) - cents(item.budget))}`, item.owner && `Responsável: ${item.owner}`].filter(Boolean).join(' · ');
+    meta.textContent = [item.category, item.expenseNature && `Despesa ${item.expenseNature.toLocaleLowerCase('pt-BR')}`, item.periodicity, effectiveStatus(item), item.deadline && `Prazo: ${formattedDate(item.deadline)}`, item.executionDate && `Execução: ${formattedDate(item.executionDate)}`, `Previsto: ${moneyFromCents(cents(item.budget))}`, `Realizado: ${moneyFromCents(cents(item.actual))}`, `Diferença: ${moneyFromCents(cents(item.actual) - cents(item.budget))}`, item.owner && `Responsável: ${item.owner}`].filter(Boolean).join(' · ');
     article.append(meta);
     if (item.notes) { const note = document.createElement('p'); note.className = 'small'; note.textContent = item.notes; article.append(note); }
     const actions = document.createElement('div'); actions.className = 'actions';
@@ -222,7 +227,7 @@ $('activity-form').addEventListener('submit', event => {
 
 $('cancel-edit').addEventListener('click', resetForm);
 $('search').addEventListener('input', render);
-for (const id of ['status-filter', 'category-filter', 'month-filter']) $(id).addEventListener('change', render);
+for (const id of ['status-filter', 'category-filter', 'nature-filter', 'month-filter']) $(id).addEventListener('change', render);
 $('import-trigger').addEventListener('click', () => $('import-file').click());
 
 $('export').addEventListener('click', () => {
