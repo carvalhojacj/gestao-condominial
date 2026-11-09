@@ -7,9 +7,10 @@ const STATUSES = ['Não iniciada', 'Em andamento', 'Concluída', 'Cancelada'];
 const PRIORITIES = ['Normal', 'Alta', 'Baixa'];
 const PERIODICITIES = ['Pontual', 'Mensal', 'Trimestral', 'Semestral', 'Anual'];
 const EXPENSE_NATURES = ['', 'Ordinária', 'Eventual'];
-const FIELDS = ['description', 'category', 'expenseNature', 'owner', 'deadline', 'periodicity', 'priority', 'status', 'executionDate', 'budget', 'actual', 'receipt', 'notes'];
+const FIELDS = ['description', 'category', 'expenseNature', 'owner', 'supplier', 'deadline', 'periodicity', 'priority', 'status', 'executionDate', 'budget', 'actual', 'receipt', 'notes'];
 const $ = id => document.getElementById(id);
 const currency = new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'});
+const percent = new Intl.NumberFormat('pt-BR', {style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1});
 let activities = [];
 let storageAvailable = false;
 let storageCorrupt = false;
@@ -74,6 +75,7 @@ function normalizeRecord(raw, allowLegacyMissingCompletionDate = false) {
     category: textField(raw.category ?? '', 'Categoria', 60),
     expenseNature: raw.expenseNature ?? '',
     owner: textField(raw.owner ?? '', 'Responsável', 80),
+    supplier: textField(raw.supplier ?? '', 'Empresa prestadora', 100),
     deadline: validDate(raw.deadline ?? '', 'Prazo'),
     periodicity: raw.periodicity ?? 'Pontual',
     priority: raw.priority ?? 'Normal',
@@ -126,6 +128,62 @@ function effectiveStatus(activity) {
 
 function formattedDate(value) { return value ? value.split('-').reverse().join('/') : ''; }
 
+function dateAfterDays(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+}
+
+function renderFinance(planned, spent) {
+  $('finance-planned').textContent = moneyFromCents(planned);
+  $('finance-actual').textContent = moneyFromCents(spent);
+  $('finance-difference').textContent = moneyFromCents(spent - planned);
+  $('finance-percent').textContent = planned ? percent.format((spent - planned) / planned) : '—';
+  const body = $('finance-by-nature');
+  body.replaceChildren();
+  for (const [value, label] of [['Ordinária', 'Ordinária'], ['Eventual', 'Eventual'], ['', 'Não informada']]) {
+    const group = activities.filter(item => item.expenseNature === value);
+    const groupPlanned = group.reduce((sum, item) => sum + cents(item.budget), 0);
+    const groupSpent = group.reduce((sum, item) => sum + cents(item.actual), 0);
+    const row = document.createElement('tr');
+    for (const cellValue of [label, String(group.length), moneyFromCents(groupPlanned), moneyFromCents(groupSpent), moneyFromCents(groupSpent - groupPlanned)]) {
+      const cell = document.createElement('td');
+      cell.textContent = cellValue;
+      row.append(cell);
+    }
+    body.append(row);
+  }
+}
+
+function renderReceipts() {
+  const container = $('receipt-items');
+  container.replaceChildren();
+  const linked = activities.filter(item => item.receipt).sort((a, b) => a.description.localeCompare(b.description, 'pt-BR'));
+  if (!linked.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty-state';
+    empty.textContent = 'Nenhum comprovante vinculado às atividades.';
+    container.append(empty);
+    return;
+  }
+  for (const item of linked) {
+    const article = document.createElement('article');
+    article.className = 'record';
+    const title = document.createElement('h4');
+    title.textContent = item.description;
+    const meta = document.createElement('div');
+    meta.className = 'record-meta';
+    meta.textContent = [item.category, item.supplier, item.executionDate && `Execução: ${formattedDate(item.executionDate)}`].filter(Boolean).join(' · ');
+    const link = document.createElement('a');
+    link.href = item.receipt;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Abrir comprovante';
+    article.append(title, meta, link);
+    container.append(article);
+  }
+}
+
 function resetForm() {
   $('activity-form').reset();
   $('edit-id').value = '';
@@ -151,10 +209,16 @@ function render() {
   const spent = activities.reduce((sum, item) => sum + cents(item.actual), 0);
   $('total').textContent = activities.length;
   $('done').textContent = activities.filter(item => item.status === 'Concluída').length;
+  $('progress').textContent = activities.filter(item => item.status === 'Em andamento').length;
   $('late').textContent = activities.filter(item => effectiveStatus(item) === 'Atrasada').length;
+  const today = localToday();
+  const inThirtyDays = dateAfterDays(30);
+  $('upcoming').textContent = activities.filter(item => item.deadline && item.deadline >= today && item.deadline <= inThirtyDays && !['Concluída', 'Cancelada'].includes(item.status)).length;
   $('planned').textContent = moneyFromCents(planned);
   $('spent').textContent = moneyFromCents(spent);
   $('difference').textContent = moneyFromCents(spent - planned);
+  renderFinance(planned, spent);
+  renderReceipts();
 
   const query = $('search').value.trim().toLocaleLowerCase('pt-BR');
   const status = $('status-filter').value;
@@ -166,24 +230,25 @@ function render() {
     (!category || item.category === category) &&
     (!nature || (nature === 'none' ? !item.expenseNature : item.expenseNature === nature)) &&
     (!month || item.deadline.startsWith(month + '-')) &&
-    (!query || `${item.description} ${item.category} ${item.owner}`.toLocaleLowerCase('pt-BR').includes(query))
+    (!query || `${item.description} ${item.category} ${item.owner} ${item.supplier}`.toLocaleLowerCase('pt-BR').includes(query))
   ).sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999') || a.description.localeCompare(b.description, 'pt-BR'));
 
   const container = $('items');
   container.replaceChildren();
   if (!visible.length) {
     const empty = document.createElement('p');
+    empty.className = 'empty-state';
     empty.textContent = activities.length ? 'Nenhuma atividade encontrada.' : 'Nenhuma atividade cadastrada.';
     container.append(empty);
     return;
   }
   for (const item of visible) {
-    const article = document.createElement('article'); article.className = 'item';
-    const title = document.createElement('h3'); title.textContent = item.description; article.append(title);
-    const meta = document.createElement('div'); meta.className = 'meta';
-    meta.textContent = [item.category, item.expenseNature && `Despesa ${item.expenseNature.toLocaleLowerCase('pt-BR')}`, item.periodicity, effectiveStatus(item), item.deadline && `Prazo: ${formattedDate(item.deadline)}`, item.executionDate && `Execução: ${formattedDate(item.executionDate)}`, `Previsto: ${moneyFromCents(cents(item.budget))}`, `Realizado: ${moneyFromCents(cents(item.actual))}`, `Diferença: ${moneyFromCents(cents(item.actual) - cents(item.budget))}`, item.owner && `Responsável: ${item.owner}`].filter(Boolean).join(' · ');
+    const article = document.createElement('article'); article.className = 'record';
+    const title = document.createElement('h4'); title.textContent = item.description; article.append(title);
+    const meta = document.createElement('div'); meta.className = 'record-meta';
+    meta.textContent = [item.category, item.expenseNature && `Despesa ${item.expenseNature.toLocaleLowerCase('pt-BR')}`, item.periodicity, effectiveStatus(item), item.priority === 'Alta' && 'Prioridade alta', item.deadline && `Prazo: ${formattedDate(item.deadline)}`, item.executionDate && `Execução: ${formattedDate(item.executionDate)}`, `Previsto: ${moneyFromCents(cents(item.budget))}`, `Realizado: ${moneyFromCents(cents(item.actual))}`, `Diferença: ${moneyFromCents(cents(item.actual) - cents(item.budget))}`, item.owner && `Responsável: ${item.owner}`, item.supplier && `Empresa: ${item.supplier}`].filter(Boolean).join(' · ');
     article.append(meta);
-    if (item.notes) { const note = document.createElement('p'); note.className = 'small'; note.textContent = item.notes; article.append(note); }
+    if (item.notes) { const note = document.createElement('p'); note.className = 'record-note'; note.textContent = item.notes; article.append(note); }
     const actions = document.createElement('div'); actions.className = 'actions';
     if (item.receipt) { const link = document.createElement('a'); link.href = item.receipt; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Abrir comprovante'; actions.append(link); }
     const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'secondary'; edit.textContent = 'Editar'; edit.addEventListener('click', () => editActivity(item.id)); actions.append(edit);
@@ -203,6 +268,7 @@ function editActivity(id) {
   $('edit-id').value = id;
   $('form-title').textContent = 'Editar atividade';
   $('cancel-edit').hidden = false;
+  window.goToView('plano/nova');
   $('activity-form').scrollIntoView({behavior: 'smooth'});
   $('description').focus();
 }
@@ -221,7 +287,7 @@ $('activity-form').addEventListener('submit', event => {
     const index = activities.findIndex(item => item.id === record.id);
     if (index < 0 && activities.length >= MAX_RECORDS) throw new Error('Limite de atividades atingido.');
     if (index >= 0) activities[index] = record; else activities.push(record);
-    resetForm(); render(); savedMessage('Atividade salva.');
+    resetForm(); render(); window.goToView('plano/atividades'); savedMessage('Atividade salva.');
   } catch (error) { show(error.message, 'notice'); }
 });
 
@@ -231,7 +297,7 @@ for (const id of ['status-filter', 'category-filter', 'nature-filter', 'month-fi
 $('import-trigger').addEventListener('click', () => $('import-file').click());
 
 $('export').addEventListener('click', () => {
-  const backup = {version: 1, exportedAt: new Date().toISOString(), activities};
+  const backup = {version: 2, exportedAt: new Date().toISOString(), activities, directory: window.demoDirectory.exportData()};
   const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -246,12 +312,19 @@ $('import-file').addEventListener('change', async event => {
   try {
     if (file.size > MAX_BACKUP_BYTES) throw new Error('O arquivo de cópia de segurança é grande demais.');
     const backup = JSON.parse(await file.text());
-    if (!backup || backup.version !== 1) throw new Error('Versão de cópia de segurança não reconhecida.');
+    if (!backup || ![1, 2].includes(backup.version)) throw new Error('Versão de cópia de segurança não reconhecida.');
     const restored = normalizeList(backup.activities, true);
-    if (!confirm(`Substituir as ${activities.length} atividades atuais pelas ${restored.length} da cópia?`)) return;
+    const restoredDirectory = backup.version === 2 ? window.demoDirectory.validateData(backup.directory) : null;
+    const prompt = restoredDirectory
+      ? `Substituir as atividades e os cadastros de demonstração atuais pelos dados da cópia?`
+      : `Substituir as ${activities.length} atividades atuais pelas ${restored.length} da cópia antiga? Os cadastros de pessoas serão mantidos.`;
+    if (!confirm(prompt)) return;
     activities = restored;
+    const directorySaved = restoredDirectory ? window.demoDirectory.importData(restoredDirectory) : true;
     storageCorrupt = false;
-    resetForm(); render(); savedMessage('Cópia importada.');
+    resetForm(); render();
+    if (directorySaved) savedMessage('Cópia importada.');
+    else show('Cópia importada apenas nesta sessão. Exporte um novo JSON antes de sair.', 'notice');
   } catch (error) { show(`Importação cancelada: ${error.message}`, 'notice'); }
   finally { event.target.value = ''; }
 });
