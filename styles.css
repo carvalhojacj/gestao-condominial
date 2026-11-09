@@ -238,6 +238,30 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
 .finance-mobile-card dt { color: var(--text-muted); font-size: .76rem; }
 .finance-mobile-card dd { margin: 2px 0 0; font-size: .86rem; font-weight: 700; overflow-wrap: anywhere; }
 .finance-interpretation { margin: 16px 0 0; color: var(--text-muted); font-size: .88rem; }
+.ledger-controls { display: grid; grid-template-columns: minmax(200px, 2fr) repeat(3, minmax(140px, 1fr)) auto; gap: 10px; align-items: end; margin: 22px 0 14px; }
+.ledger-controls label { color: #304858; font-size: .85rem; font-weight: 700; }
+.ledger-controls input, .ledger-controls select { display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 9px 10px; border: 1px solid #aebfca; border-radius: 8px; background: #fff; color: #1d2935; }
+.ledger-table table { min-width: 860px; }
+.ledger-table th:nth-child(2), .ledger-table th:nth-child(3), .ledger-table td:nth-child(2), .ledger-table td:nth-child(3) { text-align: left; }
+.ledger-table td:nth-child(n+4):nth-child(-n+6) { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ledger-actions { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 5px; }
+.ledger-actions button { min-height: 36px; padding: 6px 9px; font-size: .78rem; }
+.ledger-mobile-list { display: none; }
+.ledger-mobile-card { padding: 14px 0; border-top: 1px solid var(--border); }
+.ledger-mobile-head { display: flex; justify-content: space-between; gap: 12px; }
+.ledger-mobile-head strong { min-width: 0; overflow-wrap: anywhere; }
+.ledger-mobile-head strong:last-child { white-space: nowrap; }
+.ledger-mobile-card p { margin: 5px 0; color: var(--text-muted); font-size: .82rem; }
+.ledger-mobile-card .ledger-actions { justify-content: flex-start; margin-top: 9px; }
+.ledger-in { color: #17634d; }
+.ledger-out { color: #9b3434; }
+.category-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.category-group h4 { margin: 0 0 12px; }
+.category-card { margin-bottom: 10px; padding: 13px 15px; border: 1px solid var(--border); border-radius: 9px; background: #fff; }
+.category-card-head, .category-line { display: flex; justify-content: space-between; gap: 15px; }
+.category-card-head { margin-bottom: 6px; color: var(--brand); }
+.category-line { padding-top: 5px; color: var(--text-muted); font-size: .83rem; }
+.category-line span:last-child, .category-card-head strong:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .mobile-hint { display: none; }
 .backup-explainer { max-width: 760px; margin-bottom: 18px; padding: 15px 17px; border: 1px solid #cfdeea; border-radius: 9px; background: #f0f7fc; font-size: .88rem; }
 .backup-explainer p { margin: 5px 0 0; color: var(--text-muted); }
@@ -246,6 +270,7 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
 @media (max-width: 1100px) {
   .metrics-primary, .financial-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard-grid { grid-template-columns: 1fr; }
+  .ledger-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
   .site-header { padding: 13px 16px; }
@@ -276,6 +301,8 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   .activity-details { margin-top: 0; padding-top: 2px; }
   .finance-table { display: none; }
   .finance-mobile-list { display: grid; gap: 10px; }
+  .ledger-table { display: none; }
+  .ledger-mobile-list { display: block; }
   .receipt-row { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
@@ -283,6 +310,9 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   .brand h1 { font-size: 1.28rem; }
   .brand p { font-size: .76rem; line-height: 1.3; }
   .mini-metrics, .toolbar, .form-grid, .quick-actions { grid-template-columns: 1fr; }
+  .ledger-controls, .category-summary { grid-template-columns: 1fr; }
+  .ledger-mobile-head { align-items: flex-start; }
+  .ledger-mobile-head strong:last-child { font-size: .88rem; }
   .metric { padding: 14px; }
   .metric strong { font-size: 1.26rem; }
   .dashboard-panel { padding: 18px; }
@@ -297,3 +327,4 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   button, .button-link, .quick-actions a { transition: none; }
   button:active, .button-link:active, .quick-actions a:hover { transform: none; }
 }
+

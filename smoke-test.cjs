@@ -16,6 +16,10 @@ async function main() {
     assert.equal(await seedPage.locator('#residents-count').textContent(), '4');
     assert.equal(await seedPage.locator('#employees-count').textContent(), '3');
     assert.equal(await seedPage.locator('#vendors-count').textContent(), '4');
+    await seedPage.locator('.top-nav [data-area="financeiro"]').click();
+    assert.equal(await seedPage.locator('#ledger-count').textContent(), '6');
+    assert.match(await seedPage.locator('#ledger-balance').textContent(), /3\.960,00/);
+    assert.equal(await seedPage.locator('#ledger-mobile .ledger-mobile-card').count(), 6);
     assert.equal(await seedPage.locator('#receipt-items a').count(), 1);
     assert.match(await seedPage.locator('#receipt-items a').getAttribute('href'), /comprovante-demonstrativo\.html$/);
     await seedPage.reload();
@@ -50,6 +54,8 @@ async function main() {
       localStorage.setItem('plano-trabalho-sqs110f-v1', '[]');
       localStorage.setItem('gestao-condominial-demo-directory-v1', JSON.stringify({residents: [], employees: [], vendors: []}));
       localStorage.setItem('gestao-condominial-demo-seed-v1', '1');
+      localStorage.setItem('gestao-condominial-demo-finance-seed-v1', '1');
+      localStorage.setItem('gestao-condominial-demo-finance-v1', '[]');
       sessionStorage.setItem('smoke-initialized', '1');
     });
     const page = await context.newPage();
@@ -108,7 +114,7 @@ async function main() {
     assert.equal(await page.locator('#vendor-form-panel').isHidden(), true);
 
     await page.locator('.top-nav [data-area="plano"]').click();
-    assert.equal(await page.locator('#side-nav a').count(), 2);
+    assert.equal(await page.locator('#side-nav a').count(), 3);
     await page.locator('#side-nav a[href="#plano/nova"]').click();
     await page.locator('#description').fill('Teste de manutenção');
     await page.locator('#category').fill('Manutenção');
@@ -163,16 +169,35 @@ async function main() {
     await page.getByRole('button', {name: 'Atualizar atividade'}).click();
     assert.match(await page.locator('#difference').textContent(), /20,25/);
 
-    await page.locator('.top-nav [data-area="financeiro"]').click();
+    await page.locator('#side-nav a[href="#plano/previsto-realizado"]').click();
     assert.equal(await page.locator('#message').textContent(), '');
     if (process.env.PREVIEW_DIR) await page.screenshot({path: path.join(process.env.PREVIEW_DIR, 'financeiro-mobile.png'), fullPage: true});
-    assert.equal(await page.locator('#side-nav a').count(), 2);
+    assert.equal(await page.locator('#side-nav a').count(), 3);
     assert.match(await page.locator('#finance-percent').textContent(), /20,3/);
     assert.match(await page.locator('#finance-interpretation').textContent(), /acima do previsto/i);
     assert.match(await page.locator('#finance-by-nature').textContent(), /Eventual/);
     assert.equal(await page.locator('#finance-by-nature-mobile .finance-mobile-card').count(), 3);
     assert.equal(await page.locator('#finance-by-nature-mobile').isVisible(), true);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.locator('.top-nav [data-area="financeiro"]').click();
+    assert.equal(await page.locator('#ledger-count').textContent(), '0');
+    await page.getByRole('button', {name: 'Novo lançamento'}).click();
+    await page.locator('#transaction-date').fill('2026-11-08');
+    await page.locator('#transaction-type').selectOption('Entrada');
+    await page.locator('#transaction-description').fill('Cota fictícia');
+    await page.locator('#transaction-amount').fill('150.25');
+    await page.getByRole('button', {name: 'Salvar lançamento'}).click();
+    assert.equal(await page.locator('#ledger-count').textContent(), '1');
+    assert.match(await page.locator('#ledger-balance').textContent(), /150,25/);
+    await page.locator('#ledger-mobile .ledger-mobile-card').getByRole('button', {name: 'Editar'}).click();
+    await page.locator('#transaction-type').selectOption('Saída');
+    await page.locator('#transaction-category').selectOption('Consumo');
+    await page.locator('#transaction-subcategory').selectOption('Água');
+    await page.locator('#transaction-amount').fill('50.25');
+    await page.getByRole('button', {name: 'Atualizar lançamento'}).click();
+    assert.match(await page.locator('#ledger-balance').textContent(), /-50,25/);
+    await page.locator('#side-nav a[href="#financeiro/categorias"]').click();
+    assert.match(await page.locator('#ledger-category-summary').textContent(), /Consumo/);
     await page.locator('#side-nav a[href="#financeiro/comprovantes"]').click();
     assert.equal(await page.locator('#receipt-items .record').count(), 1);
     assert.equal(await page.locator('#receipt-items .receipt-row').count(), 1);
@@ -183,12 +208,14 @@ async function main() {
     assert.match(await page.locator('#message').textContent(), /download iniciado/i);
     const download = await downloadPromise;
     const backup = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-    assert.equal(backup.version, 2);
+    assert.equal(backup.version, 3);
     assert.equal(backup.activities[0].actual, '120.25');
     assert.equal(backup.activities[0].supplier, 'Empresa Exemplo');
     assert.equal(backup.directory.residents.length, 1);
     assert.equal(backup.directory.employees.length, 1);
     assert.equal(backup.directory.vendors.length, 1);
+    assert.equal(backup.finance.length, 1);
+    assert.equal(backup.finance[0].type, 'Saída');
 
     await page.locator('.top-nav [data-area="plano"]').click();
     await page.locator('#items .record').getByRole('button', {name: 'Excluir'}).click();
@@ -197,6 +224,9 @@ async function main() {
     await page.locator('#import-file').setInputFiles({name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup))});
     assert.equal(await page.locator('#total').textContent(), '1');
     assert.equal(await page.locator('#residents-count').textContent(), '1');
+    await page.locator('.top-nav [data-area="financeiro"]').click();
+    assert.match(await page.locator('#ledger-balance').textContent(), /-50,25/);
+    await page.locator('.top-nav [data-area="configuracoes"]').click();
 
     const oldBackup = {version: 1, activities: JSON.parse(JSON.stringify(backup.activities))};
     delete oldBackup.activities[0].expenseNature;
@@ -209,6 +239,8 @@ async function main() {
     assert.equal(await page.locator('#supplier').inputValue(), '');
     await page.getByRole('button', {name: 'Cancelar edição'}).click();
     assert.equal(await page.locator('#residents-count').textContent(), '1');
+    await page.locator('.top-nav [data-area="financeiro"]').click();
+    assert.equal(await page.locator('#ledger-count').textContent(), '1');
 
     if (process.env.PREVIEW_DIR) {
       await page.setViewportSize({width: 1280, height: 800});
@@ -224,11 +256,16 @@ async function main() {
     assert.equal(await page.locator('#residents-count').textContent(), '5');
     assert.equal(await page.locator('#employees-count').textContent(), '4');
     assert.equal(await page.locator('#vendors-count').textContent(), '5');
+    await page.locator('.top-nav [data-area="financeiro"]').click();
+    assert.equal(await page.locator('#ledger-count').textContent(), '7');
+    await page.locator('.top-nav [data-area="configuracoes"]').click();
     await page.getByRole('button', {name: 'Adicionar dados fictícios'}).click();
     assert.equal(await page.locator('#total').textContent(), '6');
+    assert.equal(await page.locator('#ledger-count').textContent(), '7');
     assert.deepEqual(errors, []);
-    console.log('OK: exemplos, navegação, cadastros, plano, financeiro e backups v1/v2 em tela de celular');
+    console.log('OK: exemplos, navegação, cadastros, plano, extrato e backups v1/v3 em tela de celular');
   } finally { await browser.close(); }
 }
 
 main().then(() => process.exit(0)).catch(error => { console.error(error); process.exit(1); });
+

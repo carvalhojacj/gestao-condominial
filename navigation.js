@@ -9,7 +9,8 @@ const NAV_AREAS = {
     label: 'Plano de trabalho',
     views: [
       {route: 'plano/atividades', label: 'Atividades', description: 'Consulte prazos, situações e responsáveis.'},
-      {route: 'plano/nova', label: 'Nova atividade', description: 'Cadastre ou atualize uma atividade planejada.'}
+      {route: 'plano/nova', label: 'Nova atividade', description: 'Cadastre ou atualize uma atividade planejada.'},
+      {route: 'plano/previsto-realizado', label: 'Previsto x realizado', description: 'Compare os valores das atividades cadastradas.'}
     ]
   },
   pessoas: {
@@ -23,7 +24,8 @@ const NAV_AREAS = {
   financeiro: {
     label: 'Financeiro',
     views: [
-      {route: 'financeiro/previsto-realizado', label: 'Previsto x realizado', description: 'Compare os valores das atividades cadastradas.'},
+      {route: 'financeiro/extrato', label: 'Extrato', description: 'Consulte entradas, saídas e saldos do controle demonstrativo.'},
+      {route: 'financeiro/categorias', label: 'Categorias', description: 'Veja o total movimentado por categoria e subcategoria.'},
       {route: 'financeiro/comprovantes', label: 'Comprovantes', description: 'Localize os links associados às atividades.'}
     ]
   },
@@ -42,6 +44,7 @@ const DEFAULT_ROUTE = 'painel/visao-geral';
 function readRoute() {
   try {
     const route = decodeURIComponent(location.hash.slice(1));
+    if (route === 'financeiro/previsto-realizado') return 'plano/previsto-realizado';
     return ROUTES.some(view => view.route === route) ? route : DEFAULT_ROUTE;
   } catch { return DEFAULT_ROUTE; }
 }
@@ -76,7 +79,7 @@ function renderNavigation() {
   document.getElementById('breadcrumb').textContent = area.label;
   document.getElementById('page-title').textContent = route === 'plano/nova'
     ? document.getElementById('form-title').textContent
-    : view.label;
+    : route === 'financeiro/extrato' && !document.getElementById('finance-form-panel').hidden ? document.getElementById('finance-form-title').textContent : view.label;
   document.getElementById('page-description').textContent = view.description;
   document.querySelectorAll('[data-view]').forEach(section => {
     section.hidden = section.dataset.view !== route;
@@ -94,3 +97,4 @@ window.addEventListener('hashchange', () => {
   document.getElementById('page-title').focus();
 });
 renderNavigation();
+

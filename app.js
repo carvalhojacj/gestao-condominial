@@ -456,12 +456,13 @@ function addDemoData(silent = false) {
     const missing = examples.filter(seed => !activities.some(item => item.id === seed.id));
     if (activities.length + missing.length > MAX_RECORDS) throw new Error('Limite de atividades atingido.');
     const directoryResult = window.demoDirectory.addExamples();
+    const financeResult = window.financeLedger.addExamples();
     activities = [...activities, ...missing];
     render();
     const activitiesSaved = save();
-    const added = missing.length + directoryResult.added;
+    const added = missing.length + directoryResult.added + financeResult.added;
     const message = added ? `${added} registros fictícios adicionados.` : 'Todos os exemplos já estão cadastrados neste navegador.';
-    const saved = activitiesSaved && directoryResult.saved;
+    const saved = activitiesSaved && directoryResult.saved && financeResult.saved;
     if (!silent || !saved) show(saved ? message : `${message} Exporte um JSON antes de sair, pois nem tudo foi salvo neste navegador.`, saved ? 'success' : 'notice');
     return saved;
   } catch (error) { show(error.message, 'notice'); return false; }
@@ -471,7 +472,7 @@ $('add-demo-data').addEventListener('click', () => addDemoData());
 
 $('export').addEventListener('click', () => {
   try {
-    const backup = {version: 2, exportedAt: new Date().toISOString(), activities, directory: window.demoDirectory.exportData()};
+    const backup = {version: 3, exportedAt: new Date().toISOString(), activities, directory: window.demoDirectory.exportData(), finance: window.financeLedger.exportData()};
     const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -490,18 +491,22 @@ $('import-file').addEventListener('change', async event => {
   try {
     if (file.size > MAX_BACKUP_BYTES) throw new Error('O arquivo de cópia de segurança é grande demais.');
     const backup = JSON.parse(await file.text());
-    if (!backup || ![1, 2].includes(backup.version)) throw new Error('Versão de cópia de segurança não reconhecida.');
+    if (!backup || ![1, 2, 3].includes(backup.version)) throw new Error('Versão de cópia de segurança não reconhecida.');
     const restored = normalizeList(backup.activities, true);
-    const restoredDirectory = backup.version === 2 ? window.demoDirectory.validateData(backup.directory) : null;
-    const prompt = restoredDirectory
-      ? `Substituir as atividades e os cadastros de demonstração atuais pelos dados da cópia?`
-      : `Substituir as ${activities.length} atividades atuais pelas ${restored.length} da cópia antiga? Os cadastros de pessoas serão mantidos.`;
+    const restoredDirectory = backup.version >= 2 ? window.demoDirectory.validateData(backup.directory) : null;
+    const restoredFinance = backup.version === 3 ? window.financeLedger.validateData(backup.finance) : null;
+    const prompt = restoredFinance
+      ? 'Substituir atividades, cadastros e lançamentos financeiros atuais pelos dados da cópia?'
+      : restoredDirectory
+      ? 'Substituir atividades e cadastros atuais pelos dados da cópia? Os lançamentos financeiros serão mantidos.'
+      : `Substituir as ${activities.length} atividades atuais pelas ${restored.length} da cópia antiga? Cadastros de pessoas e lançamentos financeiros serão mantidos.`;
     if (!confirm(prompt)) { show('Importação cancelada.'); return; }
     activities = restored;
     const directorySaved = restoredDirectory ? window.demoDirectory.importData(restoredDirectory) : true;
+    const financeSaved = restoredFinance ? window.financeLedger.importData(restoredFinance) : true;
     storageCorrupt = false;
     resetForm(); render();
-    if (directorySaved) savedMessage('Cópia importada.');
+    if (directorySaved && financeSaved) savedMessage('Cópia importada.');
     else show('Cópia importada apenas nesta sessão. Exporte um novo JSON antes de sair.', 'notice');
   } catch (error) { show(`Importação cancelada: ${error.message}`, 'notice'); }
   finally { event.target.value = ''; $('import-trigger').disabled = false; }
@@ -521,3 +526,4 @@ try {
 }
 if (window.demoSeed.autoAddAtLoad && !storageCorrupt && addDemoData(true)) window.demoSeed.markAutoAdded();
 render();
+

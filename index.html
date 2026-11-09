@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#153d60">
   <title>Gestão condominial</title>
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -16,7 +16,7 @@
         <div class="brand">
           <span class="brand-kicker">Administração condominial</span>
           <h1>Gestão condominial</h1>
-          <p>Cadastro e acompanhamento das atividades e despesas</p>
+        <p>Cadastro e acompanhamento das atividades e finanças</p>
         </div>
       </div>
       <div class="header-meta">
@@ -29,7 +29,7 @@
       <a href="#painel/visao-geral" data-area="painel">Painel</a>
       <a href="#plano/atividades" data-area="plano">Plano de trabalho</a>
       <a href="#pessoas/moradores" data-area="pessoas">Pessoas</a>
-      <a href="#financeiro/previsto-realizado" data-area="financeiro">Financeiro</a>
+      <a href="#financeiro/extrato" data-area="financeiro">Financeiro</a>
       <a href="#configuracoes/backup" data-area="configuracoes">Configurações</a>
     </nav>
 
@@ -59,7 +59,7 @@
             <div class="metric"><span>Atividades</span><strong id="total">0</strong></div>
             <div class="metric"><span>Concluídas</span><strong id="done">0</strong></div>
             <div class="metric"><span>Atrasadas</span><strong id="late">0</strong></div>
-            <div class="metric metric-accent"><span>Diferença de valores</span><strong id="difference">R$ 0,00</strong></div>
+            <div class="metric metric-accent"><span>Diferença do plano</span><strong id="difference">R$ 0,00</strong></div>
           </div>
           <div class="dashboard-grid">
             <div class="dashboard-panel">
@@ -68,7 +68,7 @@
               <div id="upcoming-items" class="upcoming-list"></div>
             </div>
             <div class="dashboard-panel">
-              <div class="section-heading"><h3>Valores das atividades</h3><a class="text-link" href="#financeiro/previsto-realizado">Ver resumo</a></div>
+              <div class="section-heading"><h3>Valores das atividades</h3><a class="text-link" href="#plano/previsto-realizado">Ver resumo</a></div>
               <div class="value-row"><span>Previsto</span><strong id="planned">R$ 0,00</strong></div>
               <div class="value-row"><span>Realizado</span><strong id="spent">R$ 0,00</strong></div>
               <p class="panel-note">Resumo do plano de trabalho, sem saldo bancário.</p>
@@ -86,6 +86,21 @@
             <a href="#pessoas/funcionarios">Funcionários <strong id="employees-count">0</strong></a>
             <a href="#pessoas/empresas">Empresas <strong id="vendors-count">0</strong></a>
           </div>
+        </section>
+
+        <section data-view="plano/previsto-realizado" aria-labelledby="finance-title" hidden>
+          <h3 id="finance-title">Previsto x realizado</h3>
+          <p class="section-intro">Comparação dos valores cadastrados nas atividades. Estes valores não representam movimentações de caixa.</p>
+          <div class="metrics financial-metrics">
+            <div class="metric"><span>Previsto</span><strong id="finance-planned">R$ 0,00</strong></div>
+            <div class="metric"><span>Realizado</span><strong id="finance-actual">R$ 0,00</strong></div>
+            <div class="metric"><span>Diferença em reais</span><strong id="finance-difference">R$ 0,00</strong></div>
+            <div class="metric"><span>Diferença percentual</span><strong id="finance-percent">—</strong></div>
+          </div>
+          <p id="finance-interpretation" class="finance-interpretation">Cadastre atividades para comparar os valores.</p>
+          <h4>Por natureza da despesa</h4>
+          <div class="table-scroll finance-table" role="region" aria-label="Resumo por natureza da despesa" tabindex="0"><table><thead><tr><th scope="col">Natureza</th><th scope="col">Atividades</th><th scope="col">Previsto</th><th scope="col">Realizado</th><th scope="col">Diferença</th></tr></thead><tbody id="finance-by-nature"></tbody></table></div>
+          <div id="finance-by-nature-mobile" class="finance-mobile-list" aria-label="Resumo por natureza da despesa"></div>
         </section>
 
         <section data-view="plano/atividades" aria-labelledby="list-title" hidden>
@@ -183,19 +198,46 @@
           </div>
         </section>
 
-        <section data-view="financeiro/previsto-realizado" aria-labelledby="finance-title" hidden>
-          <h3 id="finance-title">Previsto x realizado</h3>
-          <p class="section-intro">Resumo dos valores cadastrados nas atividades. Não é livro contábil, extrato bancário ou prestação de contas.</p>
+        <section data-view="financeiro/extrato" aria-labelledby="ledger-title" hidden>
+          <div class="section-heading"><h3 id="ledger-title">Extrato demonstrativo <span id="ledger-count" class="list-count">0</span></h3><button id="new-transaction" type="button" aria-controls="finance-form-panel" aria-expanded="false">Novo lançamento</button></div>
+          <p class="section-intro">Entradas e saídas registradas manualmente. Dados fictícios neste protótipo; o saldo calculado não é saldo bancário.</p>
           <div class="metrics financial-metrics">
-            <div class="metric"><span>Previsto</span><strong id="finance-planned">R$ 0,00</strong></div>
-            <div class="metric"><span>Realizado</span><strong id="finance-actual">R$ 0,00</strong></div>
-            <div class="metric"><span>Diferença em reais</span><strong id="finance-difference">R$ 0,00</strong></div>
-            <div class="metric"><span>Diferença percentual</span><strong id="finance-percent">—</strong></div>
+            <div class="metric"><span>Saldo inicial do controle</span><strong id="ledger-opening">R$ 0,00</strong></div>
+            <div class="metric"><span>Entradas</span><strong id="ledger-inflows">R$ 0,00</strong></div>
+            <div class="metric"><span>Saídas</span><strong id="ledger-outflows">R$ 0,00</strong></div>
+            <div class="metric metric-accent"><span>Saldo calculado</span><strong id="ledger-balance">R$ 0,00</strong></div>
           </div>
-          <p id="finance-interpretation" class="finance-interpretation">Cadastre atividades para comparar os valores.</p>
-          <h4>Por natureza da despesa</h4>
-          <div class="table-scroll finance-table" role="region" aria-label="Resumo por natureza da despesa" tabindex="0"><table><thead><tr><th scope="col">Natureza</th><th scope="col">Atividades</th><th scope="col">Previsto</th><th scope="col">Realizado</th><th scope="col">Diferença</th></tr></thead><tbody id="finance-by-nature"></tbody></table></div>
-          <div id="finance-by-nature-mobile" class="finance-mobile-list" aria-label="Resumo por natureza da despesa"></div>
+          <p class="finance-interpretation">Os totais e o saldo acima consideram todos os lançamentos, mesmo quando a lista é filtrada.</p>
+          <div class="ledger-controls">
+            <label>Buscar lançamento<input id="ledger-search" type="search" placeholder="Descrição, categoria ou observação"></label>
+            <label>Tipo<select id="ledger-type-filter"><option value="">Entradas e saídas</option><option value="Entrada">Entradas</option><option value="Saída">Saídas</option></select></label>
+            <label>Mês<input id="ledger-month-filter" type="month"></label>
+            <label>Categoria<select id="ledger-category-filter"><option value="">Todas</option></select></label>
+            <button id="ledger-clear-filters" type="button" class="subtle">Limpar filtros</button>
+          </div>
+          <div class="table-scroll ledger-table" role="region" aria-label="Lançamentos financeiros" tabindex="0"><table><thead><tr><th scope="col">Data</th><th scope="col">Descrição</th><th scope="col">Categoria / subcategoria</th><th scope="col">Entrada</th><th scope="col">Saída</th><th scope="col">Saldo após</th><th scope="col">Ações</th></tr></thead><tbody id="ledger-rows"></tbody></table></div>
+          <div id="ledger-mobile" class="ledger-mobile-list"></div>
+          <div id="ledger-empty" class="empty-state" hidden></div>
+          <div id="finance-form-panel" class="directory-form-panel" role="region" aria-labelledby="finance-form-title" hidden>
+            <h4 id="finance-form-title">Novo lançamento</h4>
+            <form id="finance-form" class="form-grid compact-form">
+              <input id="transaction-id" type="hidden">
+              <label>Data *<input id="transaction-date" type="date" required></label>
+              <label>Tipo *<select id="transaction-type"><option>Entrada</option><option>Saída</option></select></label>
+              <label class="wide">Descrição *<input id="transaction-description" maxlength="120" required placeholder="Ex.: cota condominial fictícia"></label>
+              <label>Categoria *<select id="transaction-category" required></select></label>
+              <label>Subcategoria *<select id="transaction-subcategory" required></select></label>
+              <label>Valor (R$) *<input id="transaction-amount" type="number" min="0.01" step="0.01" inputmode="decimal" required></label>
+              <label class="wide">Observações<input id="transaction-notes" maxlength="300" placeholder="Opcional; não inclua dados reais"></label>
+              <div class="actions wide"><button type="submit">Salvar lançamento</button><button id="cancel-transaction" type="button" class="secondary">Cancelar</button></div>
+            </form>
+          </div>
+        </section>
+
+        <section data-view="financeiro/categorias" aria-labelledby="ledger-categories-title" hidden>
+          <h3 id="ledger-categories-title">Categorias e subcategorias</h3>
+          <p class="section-intro">Totais de entradas e saídas dos lançamentos registrados, sem misturar valores planejados.</p>
+          <div id="ledger-category-summary" class="category-summary"></div>
         </section>
 
         <section data-view="financeiro/comprovantes" aria-labelledby="receipts-title" hidden>
@@ -208,22 +250,24 @@
           <h3 id="backup-title">Cópia de segurança</h3>
           <p class="section-intro">Os registros ficam neste navegador. Exporte uma cópia após cada atualização e guarde o arquivo em local privado.</p>
           <div class="backup-explainer"><strong>Dados fictícios para demonstração</strong><p>Os exemplos são incluídos automaticamente uma vez, mesmo em navegadores já usados, sem substituir registros existentes. Se algum exemplo for excluído, o botão abaixo pode repô-lo.</p><button id="add-demo-data" type="button" class="secondary">Adicionar dados fictícios</button></div>
-          <div class="backup-explainer"><strong>Antes de importar</strong><p>Uma cópia da versão 2 substitui atividades e cadastros deste aparelho. Uma cópia antiga da versão 1 substitui apenas atividades. O sistema pedirá confirmação antes da troca.</p></div>
+          <div class="backup-explainer"><strong>Antes de importar</strong><p>Uma cópia da versão 3 substitui atividades, cadastros e lançamentos deste aparelho. Cópias antigas das versões 1 e 2 mantêm os lançamentos atuais. O sistema pedirá confirmação antes da troca.</p></div>
           <div class="actions"><button id="export" type="button">Exportar JSON</button><button id="import-trigger" type="button" class="secondary">Importar JSON</button><input id="import-file" type="file" accept="application/json,.json" aria-label="Selecionar cópia de segurança JSON" hidden></div>
         </section>
 
         <section data-view="configuracoes/sobre" aria-labelledby="about-title" hidden>
           <h3 id="about-title">Sobre esta versão</h3>
-          <p>Este protótipo acadêmico organiza atividades do plano de trabalho, pessoas fictícias e empresas de exemplo. Uma primeira visita mostra registros fictícios que podem ser editados ou excluídos. Foi criado para demonstração no celular, sem custo de licença.</p>
+          <p>Este protótipo acadêmico organiza atividades do plano de trabalho, pessoas fictícias, empresas de exemplo e um extrato financeiro demonstrativo. Uma primeira visita mostra registros fictícios que podem ser editados ou excluídos. Foi criado para demonstração no celular, sem custo de licença.</p>
           <p>Qualquer pessoa com o link pode abrir a página, mas os registros não são compartilhados entre aparelhos. O sistema não substitui a contabilidade, a folha de pagamento, o eSocial nem os documentos oficiais do condomínio.</p>
         </section>
       </main>
     </div>
   </div>
-  <script src="navigation.js?v=4" defer></script>
+  <script src="navigation.js?v=5" defer></script>
   <script src="ui-feedback.js?v=4" defer></script>
-  <script src="demo-seed.js?v=2" defer></script>
+  <script src="demo-seed.js?v=3" defer></script>
   <script src="directory.js?v=11" defer></script>
-  <script src="app.js?v=11" defer></script>
+  <script src="finance.js?v=1" defer></script>
+  <script src="app.js?v=12" defer></script>
 </body>
 </html>
+

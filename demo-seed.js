@@ -47,6 +47,14 @@ window.demoSeed = {
       executionDate: '', budget: '1200.00', actual: '', receipt: '', notes: ''
     }
   ],
+  finance: [
+    {id: 'demo-finance-cotas-out', date: '2026-10-25', type: 'Entrada', description: 'Cotas condominiais de outubro (exemplo)', category: 'Cotas condominiais', subcategory: 'Ordinária', amount: '2500.00', notes: 'Recebimento inteiramente fictício.'},
+    {id: 'demo-finance-garagem', date: '2026-10-26', type: 'Entrada', description: 'Garagem extra (exemplo)', category: 'Receitas acessórias', subcategory: 'Garagem extra', amount: '120.00', notes: ''},
+    {id: 'demo-finance-bombas', date: '2026-10-28', type: 'Saída', description: 'Revisão das bombas (exemplo)', category: 'Manutenção', subcategory: 'Preventiva', amount: '420.00', notes: 'Lançamento fictício relacionado à atividade de exemplo.'},
+    {id: 'demo-finance-cotas-nov', date: '2026-11-05', type: 'Entrada', description: 'Cotas condominiais de novembro (exemplo)', category: 'Cotas condominiais', subcategory: 'Ordinária', amount: '2500.00', notes: ''},
+    {id: 'demo-finance-agua', date: '2026-11-06', type: 'Saída', description: 'Conta de água (exemplo)', category: 'Consumo', subcategory: 'Água', amount: '460.00', notes: ''},
+    {id: 'demo-finance-energia', date: '2026-11-07', type: 'Saída', description: 'Energia das áreas comuns (exemplo)', category: 'Consumo', subcategory: 'Energia', amount: '280.00', notes: ''}
+  ],
   directory: {
     residents: [
       {id: 'demo-resident-101', unit: '101', name: 'Síndica Exemplo', relationship: 'Proprietário'},
@@ -67,3 +75,4 @@ window.demoSeed = {
     ]
   }
 };
+
