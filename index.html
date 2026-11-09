@@ -5,17 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#153d60">
   <title>Gestão condominial</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
   <div class="app-shell">
     <header class="site-header">
-      <div class="brand">
-        <span class="brand-kicker">Administração condominial</span>
-        <h1>Gestão condominial</h1>
-        <p>Cadastro e acompanhamento das atividades e despesas</p>
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">GC</span>
+        <div class="brand">
+          <span class="brand-kicker">Administração condominial</span>
+          <h1>Gestão condominial</h1>
+          <p>Cadastro e acompanhamento das atividades e despesas</p>
+        </div>
       </div>
-      <span class="demo-badge">Protótipo acadêmico</span>
+      <div class="header-meta">
+        <span class="demo-badge">Protótipo acadêmico</span>
+        <a class="header-backup" href="#configuracoes/backup">Dados neste aparelho <span aria-hidden="true">↗</span></a>
+      </div>
     </header>
 
     <nav class="top-nav" aria-label="Áreas do sistema">
@@ -28,34 +35,52 @@
 
     <div class="workspace">
       <aside class="sidebar">
+        <p class="sidebar-eyebrow">FUNÇÕES</p>
         <p id="side-label" class="sidebar-label">Painel</p>
         <nav id="side-nav" aria-label="Funções da área"></nav>
+        <div class="sidebar-footnote">Demonstração com dados fictícios</div>
       </aside>
 
-      <main id="main-content">
+      <main id="main-content" tabindex="-1">
         <div class="page-heading">
           <p id="breadcrumb" class="breadcrumb">Painel</p>
           <h2 id="page-title" tabindex="-1">Visão geral</h2>
           <p id="page-description" class="page-description"></p>
         </div>
         <p class="demo-notice"><strong>Ambiente de demonstração.</strong> Use somente dados fictícios. Os cadastros ficam neste navegador e não aparecem em outros aparelhos.</p>
-        <p id="message" role="status" aria-live="polite"></p>
+        <p id="message" role="status" aria-live="polite" tabindex="-1"></p>
 
         <section data-view="painel/visao-geral" aria-labelledby="overview-title">
           <div class="section-heading">
-            <h3 id="overview-title">Plano de trabalho</h3>
+            <div><p class="section-kicker">PANORAMA</p><h3 id="overview-title">Plano de trabalho</h3></div>
             <a class="text-link" href="#plano/atividades">Ver atividades</a>
           </div>
-          <div class="metrics">
+          <div class="metrics metrics-primary">
             <div class="metric"><span>Atividades</span><strong id="total">0</strong></div>
             <div class="metric"><span>Concluídas</span><strong id="done">0</strong></div>
-            <div class="metric"><span>Em andamento</span><strong id="progress">0</strong></div>
             <div class="metric"><span>Atrasadas</span><strong id="late">0</strong></div>
-            <div class="metric"><span>Próximas do prazo</span><strong id="upcoming">0</strong></div>
-            <div class="metric"><span>Diferença</span><strong id="difference">R$ 0,00</strong></div>
+            <div class="metric metric-accent"><span>Diferença de valores</span><strong id="difference">R$ 0,00</strong></div>
           </div>
-          <p class="summary-line">Previsto: <strong id="planned">R$ 0,00</strong> <span aria-hidden="true">·</span> Realizado: <strong id="spent">R$ 0,00</strong></p>
-          <h3>Cadastros de demonstração</h3>
+          <div class="dashboard-grid">
+            <div class="dashboard-panel">
+              <div class="section-heading"><h3>Próximos prazos</h3><a class="text-link" href="#plano/atividades">Abrir plano</a></div>
+              <p class="panel-summary"><strong id="upcoming">0</strong> nos próximos 30 dias <span aria-hidden="true">·</span> <strong id="progress">0</strong> em andamento</p>
+              <div id="upcoming-items" class="upcoming-list"></div>
+            </div>
+            <div class="dashboard-panel">
+              <div class="section-heading"><h3>Valores das atividades</h3><a class="text-link" href="#financeiro/previsto-realizado">Ver resumo</a></div>
+              <div class="value-row"><span>Previsto</span><strong id="planned">R$ 0,00</strong></div>
+              <div class="value-row"><span>Realizado</span><strong id="spent">R$ 0,00</strong></div>
+              <p class="panel-note">Resumo do plano de trabalho, sem saldo bancário.</p>
+            </div>
+          </div>
+          <div class="section-heading dashboard-subheading"><h3>Ações rápidas</h3></div>
+          <div class="quick-actions">
+            <a href="#plano/nova"><strong>Nova atividade</strong><span>Registre prazo, responsável e valores.</span></a>
+            <a href="#pessoas/moradores"><strong>Cadastros</strong><span>Consulte os exemplos de pessoas e empresas.</span></a>
+            <a href="#configuracoes/backup"><strong>Salvar cópia</strong><span>Exporte os dados deste aparelho.</span></a>
+          </div>
+          <h3 class="dashboard-subheading">Cadastros de demonstração</h3>
           <div class="mini-metrics">
             <a href="#pessoas/moradores">Moradores <strong id="residents-count">0</strong></a>
             <a href="#pessoas/funcionarios">Funcionários <strong id="employees-count">0</strong></a>
@@ -74,6 +99,7 @@
             <label>Categoria<select id="category-filter"><option value="">Todas</option></select></label>
             <label>Natureza<select id="nature-filter"><option value="">Todas</option><option>Ordinária</option><option>Eventual</option><option value="none">Não informada</option></select></label>
             <label>Mês do prazo<input id="month-filter" type="month"></label>
+            <button id="clear-filters" type="button" class="subtle">Limpar filtros</button>
           </div>
           <div id="items" class="record-list"></div>
         </section>
@@ -154,9 +180,10 @@
             <div class="metric"><span>Diferença em reais</span><strong id="finance-difference">R$ 0,00</strong></div>
             <div class="metric"><span>Diferença percentual</span><strong id="finance-percent">—</strong></div>
           </div>
+          <p id="finance-interpretation" class="finance-interpretation">Cadastre atividades para comparar os valores.</p>
           <h4>Por natureza da despesa</h4>
           <p class="mobile-hint">Deslize a tabela para ver todas as colunas.</p>
-          <div class="table-scroll"><table><thead><tr><th>Natureza</th><th>Atividades</th><th>Previsto</th><th>Realizado</th><th>Diferença</th></tr></thead><tbody id="finance-by-nature"></tbody></table></div>
+          <div class="table-scroll" role="region" aria-label="Resumo por natureza da despesa" tabindex="0"><table><thead><tr><th scope="col">Natureza</th><th scope="col">Atividades</th><th scope="col">Previsto</th><th scope="col">Realizado</th><th scope="col">Diferença</th></tr></thead><tbody id="finance-by-nature"></tbody></table></div>
         </section>
 
         <section data-view="financeiro/comprovantes" aria-labelledby="receipts-title" hidden>
@@ -167,7 +194,8 @@
 
         <section data-view="configuracoes/backup" aria-labelledby="backup-title" hidden>
           <h3 id="backup-title">Cópia de segurança</h3>
-          <p class="section-intro">Os registros ficam neste navegador. Exporte uma cópia após cada atualização e guarde o arquivo em local privado. Importar substitui os cadastros atuais.</p>
+          <p class="section-intro">Os registros ficam neste navegador. Exporte uma cópia após cada atualização e guarde o arquivo em local privado.</p>
+          <div class="backup-explainer"><strong>Antes de importar</strong><p>Uma cópia da versão 2 substitui atividades e cadastros deste aparelho. Uma cópia antiga da versão 1 substitui apenas atividades. O sistema pedirá confirmação antes da troca.</p></div>
           <div class="actions"><button id="export" type="button">Exportar JSON</button><button id="import-trigger" type="button" class="secondary">Importar JSON</button><input id="import-file" type="file" accept="application/json,.json" aria-label="Selecionar cópia de segurança JSON" hidden></div>
         </section>
 
@@ -179,9 +207,10 @@
       </main>
     </div>
   </div>
-  <script src="navigation.js" defer></script>
-  <script src="directory.js" defer></script>
-  <script src="app.js" defer></script>
+  <script src="navigation.js?v=3" defer></script>
+  <script src="ui-feedback.js?v=3" defer></script>
+  <script src="directory.js?v=3" defer></script>
+  <script src="app.js?v=3" defer></script>
 </body>
 </html>
 
