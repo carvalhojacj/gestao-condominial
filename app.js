@@ -16,8 +16,7 @@ let storageAvailable = false;
 let storageCorrupt = false;
 
 function show(message, type = 'success') {
-  $('message').textContent = message;
-  $('message').className = type;
+  window.uiFeedback.showPageMessage(message, type);
 }
 
 function textField(value, label, max, required = false) {
@@ -139,6 +138,11 @@ function renderFinance(planned, spent) {
   $('finance-actual').textContent = moneyFromCents(spent);
   $('finance-difference').textContent = moneyFromCents(spent - planned);
   $('finance-percent').textContent = planned ? percent.format((spent - planned) / planned) : '—';
+  $('finance-interpretation').textContent = !activities.length
+    ? 'Cadastre atividades para comparar os valores.'
+    : spent > planned ? 'O realizado está acima do previsto nas atividades cadastradas.'
+    : spent < planned ? 'O realizado está abaixo do previsto nas atividades cadastradas.'
+    : 'O realizado está igual ao previsto nas atividades cadastradas.';
   const body = $('finance-by-nature');
   body.replaceChildren();
   for (const [value, label] of [['Ordinária', 'Ordinária'], ['Eventual', 'Eventual'], ['', 'Não informada']]) {
@@ -160,9 +164,14 @@ function renderReceipts() {
   container.replaceChildren();
   const linked = activities.filter(item => item.receipt).sort((a, b) => a.description.localeCompare(b.description, 'pt-BR'));
   if (!linked.length) {
-    const empty = document.createElement('p');
+    const empty = document.createElement('div');
     empty.className = 'empty-state';
-    empty.textContent = 'Nenhum comprovante vinculado às atividades.';
+    const message = document.createElement('p');
+    message.textContent = 'Nenhum comprovante vinculado às atividades.';
+    const link = document.createElement('a');
+    link.href = '#plano/atividades';
+    link.textContent = 'Ver atividades';
+    empty.append(message, link);
     container.append(empty);
     return;
   }
@@ -186,8 +195,11 @@ function renderReceipts() {
 
 function resetForm() {
   $('activity-form').reset();
+  window.uiFeedback.clearFormErrors($('activity-form'));
   $('edit-id').value = '';
   $('form-title').textContent = 'Nova atividade';
+  if (location.hash === '#plano/nova') $('page-title').textContent = 'Nova atividade';
+  $('activity-form').querySelector('button[type="submit"]').textContent = 'Salvar atividade';
   $('cancel-edit').hidden = true;
 }
 
@@ -203,6 +215,28 @@ function updateCategoryFilter() {
   select.value = categories.includes(selected) ? selected : '';
 }
 
+function renderUpcoming(items) {
+  const container = $('upcoming-items');
+  container.replaceChildren();
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'upcoming-empty';
+    empty.textContent = 'Nenhuma atividade vence nos próximos 30 dias.';
+    container.append(empty);
+    return;
+  }
+  for (const item of items.slice(0, 3)) {
+    const row = document.createElement('div');
+    row.className = 'upcoming-item';
+    const title = document.createElement('strong');
+    title.textContent = item.description;
+    const date = document.createElement('span');
+    date.textContent = formattedDate(item.deadline);
+    row.append(title, date);
+    container.append(row);
+  }
+}
+
 function render() {
   updateCategoryFilter();
   const planned = activities.reduce((sum, item) => sum + cents(item.budget), 0);
@@ -213,13 +247,35 @@ function render() {
   $('late').textContent = activities.filter(item => effectiveStatus(item) === 'Atrasada').length;
   const today = localToday();
   const inThirtyDays = dateAfterDays(30);
-  $('upcoming').textContent = activities.filter(item => item.deadline && item.deadline >= today && item.deadline <= inThirtyDays && !['Concluída', 'Cancelada'].includes(item.status)).length;
+  const dueSoon = activities.filter(item => item.deadline && item.deadline >= today && item.deadline <= inThirtyDays && !['Concluída', 'Cancelada'].includes(item.status))
+    .sort((a, b) => a.deadline.localeCompare(b.deadline));
+  $('upcoming').textContent = dueSoon.length;
+  renderUpcoming(dueSoon);
   $('planned').textContent = moneyFromCents(planned);
   $('spent').textContent = moneyFromCents(spent);
   $('difference').textContent = moneyFromCents(spent - planned);
   renderFinance(planned, spent);
   renderReceipts();
+  renderActivityList();
+}
 
+function clearActivityFilters() {
+  for (const id of ['search', 'status-filter', 'category-filter', 'nature-filter', 'month-filter']) $(id).value = '';
+  renderActivityList();
+}
+
+function addRecordFact(container, label, value) {
+  const fact = document.createElement('div');
+  fact.className = 'record-fact';
+  const caption = document.createElement('span');
+  caption.textContent = label;
+  const content = document.createElement('strong');
+  content.textContent = value;
+  fact.append(caption, content);
+  container.append(fact);
+}
+
+function renderActivityList() {
   const query = $('search').value.trim().toLocaleLowerCase('pt-BR');
   const status = $('status-filter').value;
   const category = $('category-filter').value;
@@ -236,18 +292,46 @@ function render() {
   const container = $('items');
   container.replaceChildren();
   if (!visible.length) {
-    const empty = document.createElement('p');
+    const empty = document.createElement('div');
     empty.className = 'empty-state';
-    empty.textContent = activities.length ? 'Nenhuma atividade encontrada.' : 'Nenhuma atividade cadastrada.';
+    const message = document.createElement('p');
+    message.textContent = activities.length ? 'Nenhuma atividade encontrada com estes filtros.' : 'Nenhuma atividade cadastrada.';
+    empty.append(message);
+    if (activities.length) {
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.className = 'subtle';
+      clear.textContent = 'Limpar filtros';
+      clear.addEventListener('click', clearActivityFilters);
+      empty.append(clear);
+    } else {
+      const link = document.createElement('a');
+      link.href = '#plano/nova';
+      link.textContent = 'Cadastrar primeira atividade';
+      empty.append(link);
+    }
     container.append(empty);
     return;
   }
   for (const item of visible) {
     const article = document.createElement('article'); article.className = 'record';
-    const title = document.createElement('h4'); title.textContent = item.description; article.append(title);
+    const header = document.createElement('div'); header.className = 'record-header';
+    const title = document.createElement('h4'); title.textContent = item.description;
+    const badge = document.createElement('span'); badge.className = 'status-chip';
+    badge.textContent = effectiveStatus(item);
+    if (badge.textContent === 'Concluída') badge.classList.add('is-done');
+    if (badge.textContent === 'Atrasada') badge.classList.add('is-late');
+    if (badge.textContent === 'Em andamento') badge.classList.add('is-progress');
+    header.append(title, badge); article.append(header);
     const meta = document.createElement('div'); meta.className = 'record-meta';
-    meta.textContent = [item.category, item.expenseNature && `Despesa ${item.expenseNature.toLocaleLowerCase('pt-BR')}`, item.periodicity, effectiveStatus(item), item.priority === 'Alta' && 'Prioridade alta', item.deadline && `Prazo: ${formattedDate(item.deadline)}`, item.executionDate && `Execução: ${formattedDate(item.executionDate)}`, `Previsto: ${moneyFromCents(cents(item.budget))}`, `Realizado: ${moneyFromCents(cents(item.actual))}`, `Diferença: ${moneyFromCents(cents(item.actual) - cents(item.budget))}`, item.owner && `Responsável: ${item.owner}`, item.supplier && `Empresa: ${item.supplier}`].filter(Boolean).join(' · ');
+    meta.textContent = [item.category, item.expenseNature && `Despesa ${item.expenseNature.toLocaleLowerCase('pt-BR')}`, item.periodicity, item.priority === 'Alta' && 'Prioridade alta', item.executionDate && `Execução: ${formattedDate(item.executionDate)}`, item.owner && `Responsável: ${item.owner}`, item.supplier && `Empresa: ${item.supplier}`].filter(Boolean).join(' · ');
     article.append(meta);
+    const facts = document.createElement('div'); facts.className = 'record-facts';
+    addRecordFact(facts, 'Prazo', item.deadline ? formattedDate(item.deadline) : 'Não informado');
+    addRecordFact(facts, 'Previsto', moneyFromCents(cents(item.budget)));
+    addRecordFact(facts, 'Realizado', moneyFromCents(cents(item.actual)));
+    addRecordFact(facts, 'Diferença', moneyFromCents(cents(item.actual) - cents(item.budget)));
+    article.append(facts);
     if (item.notes) { const note = document.createElement('p'); note.className = 'record-note'; note.textContent = item.notes; article.append(note); }
     const actions = document.createElement('div'); actions.className = 'actions';
     if (item.receipt) { const link = document.createElement('a'); link.href = item.receipt; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Abrir comprovante'; actions.append(link); }
@@ -267,6 +351,7 @@ function editActivity(id) {
   for (const field of FIELDS) $(field).value = item[field];
   $('edit-id').value = id;
   $('form-title').textContent = 'Editar atividade';
+  $('activity-form').querySelector('button[type="submit"]').textContent = 'Atualizar atividade';
   $('cancel-edit').hidden = false;
   window.goToView('plano/nova');
   $('activity-form').scrollIntoView({behavior: 'smooth'});
@@ -278,8 +363,22 @@ function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function activityErrorField(message) {
+  const fields = [
+    [/descrição da atividade/i, 'description'], [/categoria/i, 'category'],
+    [/natureza da despesa/i, 'expenseNature'], [/responsável/i, 'owner'],
+    [/empresa prestadora/i, 'supplier'], [/^prazo/i, 'deadline'],
+    [/periodicidade/i, 'periodicity'], [/prioridade/i, 'priority'],
+    [/situação/i, 'status'], [/data de conclusão|data da execução/i, 'executionDate'],
+    [/valor previsto/i, 'budget'], [/valor realizado/i, 'actual'],
+    [/comprovante/i, 'receipt'], [/observações/i, 'notes']
+  ];
+  return fields.find(([pattern]) => pattern.test(message))?.[1] || '';
+}
+
 $('activity-form').addEventListener('submit', event => {
   event.preventDefault();
+  window.uiFeedback.clearFormErrors($('activity-form'));
   try {
     const raw = {id: $('edit-id').value || newId()};
     for (const field of FIELDS) raw[field] = $(field).value;
@@ -288,27 +387,36 @@ $('activity-form').addEventListener('submit', event => {
     if (index < 0 && activities.length >= MAX_RECORDS) throw new Error('Limite de atividades atingido.');
     if (index >= 0) activities[index] = record; else activities.push(record);
     resetForm(); render(); window.goToView('plano/atividades'); savedMessage('Atividade salva.');
-  } catch (error) { show(error.message, 'notice'); }
+  } catch (error) { window.uiFeedback.showFormError($('activity-form'), activityErrorField(error.message), error.message); }
 });
 
-$('cancel-edit').addEventListener('click', resetForm);
-$('search').addEventListener('input', render);
-for (const id of ['status-filter', 'category-filter', 'nature-filter', 'month-filter']) $(id).addEventListener('change', render);
+$('cancel-edit').addEventListener('click', () => { resetForm(); window.goToView('plano/atividades'); });
+document.addEventListener('click', event => {
+  if (event.target instanceof Element && event.target.closest('a[href="#plano/nova"]')) resetForm();
+});
+$('search').addEventListener('input', renderActivityList);
+for (const id of ['status-filter', 'category-filter', 'nature-filter', 'month-filter']) $(id).addEventListener('change', renderActivityList);
+$('clear-filters').addEventListener('click', clearActivityFilters);
 $('import-trigger').addEventListener('click', () => $('import-file').click());
 
 $('export').addEventListener('click', () => {
-  const backup = {version: 2, exportedAt: new Date().toISOString(), activities, directory: window.demoDirectory.exportData()};
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url; anchor.download = `plano-trabalho-${localToday()}.json`;
-  document.body.append(anchor); anchor.click(); anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  try {
+    const backup = {version: 2, exportedAt: new Date().toISOString(), activities, directory: window.demoDirectory.exportData()};
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url; anchor.download = `plano-trabalho-${localToday()}.json`;
+    document.body.append(anchor); anchor.click(); anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    show('Download iniciado. Guarde o arquivo JSON em local privado.');
+  } catch { show('Não foi possível iniciar o download da cópia.', 'notice'); }
 });
 
 $('import-file').addEventListener('change', async event => {
   const file = event.target.files[0];
   if (!file) return;
+  $('import-trigger').disabled = true;
+  show('Lendo a cópia de segurança...');
   try {
     if (file.size > MAX_BACKUP_BYTES) throw new Error('O arquivo de cópia de segurança é grande demais.');
     const backup = JSON.parse(await file.text());
@@ -318,7 +426,7 @@ $('import-file').addEventListener('change', async event => {
     const prompt = restoredDirectory
       ? `Substituir as atividades e os cadastros de demonstração atuais pelos dados da cópia?`
       : `Substituir as ${activities.length} atividades atuais pelas ${restored.length} da cópia antiga? Os cadastros de pessoas serão mantidos.`;
-    if (!confirm(prompt)) return;
+    if (!confirm(prompt)) { show('Importação cancelada.'); return; }
     activities = restored;
     const directorySaved = restoredDirectory ? window.demoDirectory.importData(restoredDirectory) : true;
     storageCorrupt = false;
@@ -326,7 +434,7 @@ $('import-file').addEventListener('change', async event => {
     if (directorySaved) savedMessage('Cópia importada.');
     else show('Cópia importada apenas nesta sessão. Exporte um novo JSON antes de sair.', 'notice');
   } catch (error) { show(`Importação cancelada: ${error.message}`, 'notice'); }
-  finally { event.target.value = ''; }
+  finally { event.target.value = ''; $('import-trigger').disabled = false; }
 });
 
 try {
