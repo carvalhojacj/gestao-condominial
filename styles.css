@@ -237,6 +237,7 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   .directory-grid, .directory-grid--residents { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name key" "detail actions"; gap: 7px 12px; }
   .directory-row { padding: 13px 0; }
   .directory-row .directory-cell--key { max-width: 38vw; text-align: right; font-size: .82rem; }
+  .directory-grid--residents.directory-row .directory-cell--key::before { content: 'Unid. '; }
   .directory-row .directory-cell--detail { font-size: .8rem; }
   .finance-table { display: none; }
   .finance-mobile-list { display: grid; gap: 10px; }
