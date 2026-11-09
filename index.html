@@ -3,95 +3,184 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Plano de trabalho do condomínio</title>
-  <style>
-    :root { font-family: Arial, sans-serif; color: #17212b; background: #f4f6f8; }
-    * { box-sizing: border-box; }
-    [hidden] { display: none !important; }
-    body { margin: 0; }
-    header { background: #17446a; color: white; padding: 20px 16px; }
-    header h1 { margin: 0 0 5px; font-size: 1.45rem; }
-    header p { margin: 0; font-size: .9rem; }
-    main { max-width: 1050px; margin: auto; padding: 16px; }
-    section { background: white; border: 1px solid #dbe2e8; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-    h2 { margin: 0 0 14px; font-size: 1.15rem; }
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .card { background: #edf4f9; padding: 12px; border-radius: 6px; }
-    .card strong { display: block; font-size: 1.3rem; margin-top: 5px; }
-    form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    label { display: block; font-size: .9rem; font-weight: bold; }
-    input, select, textarea { display: block; width: 100%; margin-top: 5px; padding: 10px; font: inherit; border: 1px solid #a9b6c0; border-radius: 5px; background: white; }
-    textarea { min-height: 72px; resize: vertical; }
-    .wide { grid-column: 1 / -1; }
-    button, .button { font: inherit; cursor: pointer; border: 0; border-radius: 5px; padding: 10px 14px; background: #17446a; color: white; }
-    button.secondary { background: #e6ebef; color: #17212b; }
-    button.danger { background: #a43b3b; }
-    :focus-visible { outline: 3px solid #f2aa35; outline-offset: 2px; }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-    .toolbar label { flex: 1 1 180px; }
-    .item { border-top: 1px solid #dbe2e8; padding: 13px 0; }
-    .item:first-child { border-top: 0; }
-    .item h3 { margin: 0 0 6px; font-size: 1rem; }
-    .meta { color: #43515e; font-size: .88rem; line-height: 1.5; }
-    .item .actions { margin-top: 9px; }
-    .notice { color: #7b4300; }
-    .success { color: #1c6638; }
-    .small { font-size: .85rem; color: #43515e; }
-    @media (max-width: 680px) { .grid { grid-template-columns: repeat(2, 1fr); } form { grid-template-columns: 1fr; } }
-  </style>
+  <meta name="theme-color" content="#153d60">
+  <title>Gestão condominial</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header><h1>Plano de trabalho do condomínio</h1><p>Cadastro e acompanhamento das atividades e despesas</p></header>
-  <main>
-    <p id="message" role="status" aria-live="polite"></p>
-    <section aria-labelledby="summary-title">
-      <h2 id="summary-title">Resumo</h2>
-      <div class="grid">
-        <div class="card">Atividades<strong id="total">0</strong></div>
-        <div class="card">Concluídas<strong id="done">0</strong></div>
-        <div class="card">Atrasadas<strong id="late">0</strong></div>
-        <div class="card">Diferença<strong id="difference">R$ 0,00</strong></div>
+  <div class="app-shell">
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand-kicker">Administração condominial</span>
+        <h1>Gestão condominial</h1>
+        <p>Cadastro e acompanhamento das atividades e despesas</p>
       </div>
-      <p class="small">Previsto: <span id="planned">R$ 0,00</span> · Realizado: <span id="spent">R$ 0,00</span></p>
-    </section>
-    <section aria-labelledby="form-title">
-      <h2 id="form-title">Nova atividade</h2>
-      <form id="activity-form">
-        <input id="edit-id" type="hidden">
-        <label class="wide">Descrição da atividade *<input id="description" maxlength="120" required placeholder="Ex.: manutenção da caixa d'água"></label>
-        <label>Categoria<input id="category" maxlength="60" placeholder="Ex.: manutenção"></label>
-        <label>Natureza da despesa<select id="expenseNature"><option value="">Não informada</option><option>Ordinária</option><option>Eventual</option></select></label>
-        <label>Responsável<input id="owner" maxlength="80"></label>
-        <label>Prazo<input id="deadline" type="date"></label>
-        <label>Periodicidade<select id="periodicity"><option>Pontual</option><option>Mensal</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></label>
-        <label>Prioridade<select id="priority"><option>Normal</option><option>Alta</option><option>Baixa</option></select></label>
-        <label>Situação<select id="status"><option>Não iniciada</option><option>Em andamento</option><option>Concluída</option><option>Cancelada</option></select></label>
-        <label>Data da execução ou conclusão<input id="executionDate" type="date"></label>
-        <label>Valor previsto (R$)<input id="budget" type="number" min="0" step="0.01" inputmode="decimal"></label>
-        <label>Valor realizado (R$)<input id="actual" type="number" min="0" step="0.01" inputmode="decimal"></label>
-        <label class="wide">Link do comprovante, se houver<input id="receipt" type="url" placeholder="https://..."></label>
-        <label class="wide">Observações<textarea id="notes" maxlength="500"></textarea></label>
-        <div class="actions wide"><button type="submit">Salvar atividade</button><button type="button" class="secondary" id="cancel-edit" hidden>Cancelar edição</button></div>
-      </form>
-    </section>
-    <section aria-labelledby="list-title">
-      <h2 id="list-title">Atividades cadastradas</h2>
-      <div class="toolbar">
-        <label>Buscar<input id="search" type="search" placeholder="Descrição ou categoria"></label>
-        <label>Filtrar por situação<select id="status-filter"><option value="">Todas</option><option>Não iniciada</option><option>Em andamento</option><option>Concluída</option><option>Atrasada</option><option>Cancelada</option></select></label>
-        <label>Categoria<select id="category-filter"><option value="">Todas</option></select></label>
-        <label>Natureza da despesa<select id="nature-filter"><option value="">Todas</option><option>Ordinária</option><option>Eventual</option><option value="none">Não informada</option></select></label>
-        <label>Mês do prazo<input id="month-filter" type="month"></label>
-      </div>
-      <div id="items"></div>
-    </section>
-    <section aria-labelledby="backup-title">
-      <h2 id="backup-title">Cópia de segurança</h2>
-      <p class="small">Os registros ficam neste navegador. Exporte uma cópia após cada atualização e guarde o arquivo em local privado. A importação substitui os registros atuais.</p>
-      <div class="actions"><button id="export" type="button">Exportar JSON</button><button id="import-trigger" type="button">Importar JSON</button><input id="import-file" type="file" accept="application/json,.json" aria-label="Selecionar cópia de segurança JSON" hidden></div>
-    </section>
-  </main>
+      <span class="demo-badge">Protótipo acadêmico</span>
+    </header>
+
+    <nav class="top-nav" aria-label="Áreas do sistema">
+      <a href="#painel/visao-geral" data-area="painel">Painel</a>
+      <a href="#plano/atividades" data-area="plano">Plano de trabalho</a>
+      <a href="#pessoas/moradores" data-area="pessoas">Pessoas</a>
+      <a href="#financeiro/previsto-realizado" data-area="financeiro">Financeiro</a>
+      <a href="#configuracoes/backup" data-area="configuracoes">Configurações</a>
+    </nav>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <p id="side-label" class="sidebar-label">Painel</p>
+        <nav id="side-nav" aria-label="Funções da área"></nav>
+      </aside>
+
+      <main id="main-content">
+        <div class="page-heading">
+          <p id="breadcrumb" class="breadcrumb">Painel</p>
+          <h2 id="page-title" tabindex="-1">Visão geral</h2>
+          <p id="page-description" class="page-description"></p>
+        </div>
+        <p class="demo-notice"><strong>Ambiente de demonstração.</strong> Use somente dados fictícios. Os cadastros ficam neste navegador e não aparecem em outros aparelhos.</p>
+        <p id="message" role="status" aria-live="polite"></p>
+
+        <section data-view="painel/visao-geral" aria-labelledby="overview-title">
+          <div class="section-heading">
+            <h3 id="overview-title">Plano de trabalho</h3>
+            <a class="text-link" href="#plano/atividades">Ver atividades</a>
+          </div>
+          <div class="metrics">
+            <div class="metric"><span>Atividades</span><strong id="total">0</strong></div>
+            <div class="metric"><span>Concluídas</span><strong id="done">0</strong></div>
+            <div class="metric"><span>Em andamento</span><strong id="progress">0</strong></div>
+            <div class="metric"><span>Atrasadas</span><strong id="late">0</strong></div>
+            <div class="metric"><span>Próximas do prazo</span><strong id="upcoming">0</strong></div>
+            <div class="metric"><span>Diferença</span><strong id="difference">R$ 0,00</strong></div>
+          </div>
+          <p class="summary-line">Previsto: <strong id="planned">R$ 0,00</strong> <span aria-hidden="true">·</span> Realizado: <strong id="spent">R$ 0,00</strong></p>
+          <h3>Cadastros de demonstração</h3>
+          <div class="mini-metrics">
+            <a href="#pessoas/moradores">Moradores <strong id="residents-count">0</strong></a>
+            <a href="#pessoas/funcionarios">Funcionários <strong id="employees-count">0</strong></a>
+            <a href="#pessoas/empresas">Empresas <strong id="vendors-count">0</strong></a>
+          </div>
+        </section>
+
+        <section data-view="plano/atividades" aria-labelledby="list-title" hidden>
+          <div class="section-heading">
+            <h3 id="list-title">Atividades cadastradas</h3>
+            <a class="button-link" href="#plano/nova">Nova atividade</a>
+          </div>
+          <div class="toolbar">
+            <label>Buscar<input id="search" type="search" placeholder="Descrição, categoria ou responsável"></label>
+            <label>Situação<select id="status-filter"><option value="">Todas</option><option>Não iniciada</option><option>Em andamento</option><option>Concluída</option><option>Atrasada</option><option>Cancelada</option></select></label>
+            <label>Categoria<select id="category-filter"><option value="">Todas</option></select></label>
+            <label>Natureza<select id="nature-filter"><option value="">Todas</option><option>Ordinária</option><option>Eventual</option><option value="none">Não informada</option></select></label>
+            <label>Mês do prazo<input id="month-filter" type="month"></label>
+          </div>
+          <div id="items" class="record-list"></div>
+        </section>
+
+        <section data-view="plano/nova" aria-labelledby="form-title" hidden>
+          <h3 id="form-title">Nova atividade</h3>
+          <p class="section-intro">Registre uma ação do plano de trabalho. Os valores ajudam a comparar o planejado com o realizado; não representam o saldo bancário.</p>
+          <form id="activity-form" class="form-grid">
+            <input id="edit-id" type="hidden">
+            <label class="wide">Descrição da atividade *<input id="description" maxlength="120" required placeholder="Ex.: manutenção da caixa d'água"></label>
+            <label>Categoria<input id="category" maxlength="60" placeholder="Ex.: manutenção"></label>
+            <label>Natureza da despesa<select id="expenseNature"><option value="">Não informada</option><option>Ordinária</option><option>Eventual</option></select></label>
+            <label>Responsável<input id="owner" maxlength="80"></label>
+            <label>Empresa prestadora<input id="supplier" maxlength="100" placeholder="Se houver"></label>
+            <label>Prazo<input id="deadline" type="date"></label>
+            <label>Periodicidade<select id="periodicity"><option>Pontual</option><option>Mensal</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></label>
+            <label>Prioridade<select id="priority"><option>Normal</option><option>Alta</option><option>Baixa</option></select></label>
+            <label>Situação<select id="status"><option>Não iniciada</option><option>Em andamento</option><option>Concluída</option><option>Cancelada</option></select></label>
+            <label>Data da execução ou conclusão<input id="executionDate" type="date"></label>
+            <label>Valor previsto (R$)<input id="budget" type="number" min="0" step="0.01" inputmode="decimal"></label>
+            <label>Valor realizado (R$)<input id="actual" type="number" min="0" step="0.01" inputmode="decimal"></label>
+            <label class="wide">Link do comprovante, se houver<input id="receipt" type="url" placeholder="https://..."></label>
+            <label class="wide">Observações<textarea id="notes" maxlength="500"></textarea></label>
+            <div class="actions wide">
+              <button type="submit">Salvar atividade</button>
+              <button type="button" class="secondary" id="cancel-edit" hidden>Cancelar edição</button>
+            </div>
+          </form>
+        </section>
+
+        <section data-view="pessoas/moradores" aria-labelledby="residents-title" hidden>
+          <div class="section-heading"><h3 id="residents-title">Unidades e moradores</h3><button type="button" class="secondary" data-examples="residents">Inserir exemplos fictícios</button></div>
+          <p class="section-intro">Cadastro de demonstração com unidade, nome fictício e vínculo. Não registre CPF, telefone ou dados reais nesta versão pública.</p>
+          <form data-directory="residents" class="form-grid compact-form">
+            <input name="id" type="hidden">
+            <label>Unidade *<input name="unit" maxlength="12" required placeholder="Ex.: 101"></label>
+            <label>Nome fictício *<input name="name" maxlength="80" required placeholder="Ex.: Morador Exemplo"></label>
+            <label>Vínculo<select name="relationship"><option>Proprietário</option><option>Inquilino</option><option>Outro</option></select></label>
+            <div class="actions"><button type="submit">Salvar morador</button><button type="button" class="secondary" data-cancel>Cancelar edição</button></div>
+          </form>
+          <div id="residents-list" class="record-list"></div>
+        </section>
+
+        <section data-view="pessoas/funcionarios" aria-labelledby="employees-title" hidden>
+          <div class="section-heading"><h3 id="employees-title">Funcionários</h3><button type="button" class="secondary" data-examples="employees">Inserir exemplos fictícios</button></div>
+          <p class="section-intro">Diretório de demonstração. Folha, vínculo trabalhista e obrigações do eSocial não fazem parte deste protótipo.</p>
+          <form data-directory="employees" class="form-grid compact-form">
+            <input name="id" type="hidden">
+            <label>Nome fictício *<input name="name" maxlength="80" required placeholder="Ex.: Funcionário Exemplo"></label>
+            <label>Função *<input name="job" maxlength="60" required placeholder="Ex.: portaria"></label>
+            <label>Turno<input name="shift" maxlength="40" placeholder="Ex.: manhã"></label>
+            <label>Situação<select name="status"><option>Ativo</option><option>Inativo</option></select></label>
+            <div class="actions"><button type="submit">Salvar funcionário</button><button type="button" class="secondary" data-cancel>Cancelar edição</button></div>
+          </form>
+          <div id="employees-list" class="record-list"></div>
+        </section>
+
+        <section data-view="pessoas/empresas" aria-labelledby="vendors-title" hidden>
+          <div class="section-heading"><h3 id="vendors-title">Empresas prestadoras</h3><button type="button" class="secondary" data-examples="vendors">Inserir exemplos fictícios</button></div>
+          <p class="section-intro">Organize a empresa, o serviço e o vencimento previsto do contrato. A conferência do contrato original continua com a administração.</p>
+          <form data-directory="vendors" class="form-grid compact-form">
+            <input name="id" type="hidden">
+            <label>Empresa fictícia *<input name="company" maxlength="100" required placeholder="Ex.: Empresa Exemplo"></label>
+            <label>Serviço *<input name="service" maxlength="80" required placeholder="Ex.: elevadores"></label>
+            <label>Vencimento do contrato<input name="contractEnd" type="date"></label>
+            <label>Situação<select name="status"><option>Ativa</option><option>Encerrada</option></select></label>
+            <div class="actions"><button type="submit">Salvar empresa</button><button type="button" class="secondary" data-cancel>Cancelar edição</button></div>
+          </form>
+          <div id="vendors-list" class="record-list"></div>
+        </section>
+
+        <section data-view="financeiro/previsto-realizado" aria-labelledby="finance-title" hidden>
+          <h3 id="finance-title">Previsto x realizado</h3>
+          <p class="section-intro">Resumo dos valores cadastrados nas atividades. Não é livro contábil, extrato bancário ou prestação de contas.</p>
+          <div class="metrics financial-metrics">
+            <div class="metric"><span>Previsto</span><strong id="finance-planned">R$ 0,00</strong></div>
+            <div class="metric"><span>Realizado</span><strong id="finance-actual">R$ 0,00</strong></div>
+            <div class="metric"><span>Diferença em reais</span><strong id="finance-difference">R$ 0,00</strong></div>
+            <div class="metric"><span>Diferença percentual</span><strong id="finance-percent">—</strong></div>
+          </div>
+          <h4>Por natureza da despesa</h4>
+          <p class="mobile-hint">Deslize a tabela para ver todas as colunas.</p>
+          <div class="table-scroll"><table><thead><tr><th>Natureza</th><th>Atividades</th><th>Previsto</th><th>Realizado</th><th>Diferença</th></tr></thead><tbody id="finance-by-nature"></tbody></table></div>
+        </section>
+
+        <section data-view="financeiro/comprovantes" aria-labelledby="receipts-title" hidden>
+          <h3 id="receipts-title">Comprovantes vinculados</h3>
+          <p class="section-intro">Esta página reúne os links informados nas atividades. Os arquivos permanecem no serviço escolhido e devem ter acesso restrito.</p>
+          <div id="receipt-items" class="record-list"></div>
+        </section>
+
+        <section data-view="configuracoes/backup" aria-labelledby="backup-title" hidden>
+          <h3 id="backup-title">Cópia de segurança</h3>
+          <p class="section-intro">Os registros ficam neste navegador. Exporte uma cópia após cada atualização e guarde o arquivo em local privado. Importar substitui os cadastros atuais.</p>
+          <div class="actions"><button id="export" type="button">Exportar JSON</button><button id="import-trigger" type="button" class="secondary">Importar JSON</button><input id="import-file" type="file" accept="application/json,.json" aria-label="Selecionar cópia de segurança JSON" hidden></div>
+        </section>
+
+        <section data-view="configuracoes/sobre" aria-labelledby="about-title" hidden>
+          <h3 id="about-title">Sobre esta versão</h3>
+          <p>Este protótipo acadêmico organiza atividades do plano de trabalho, pessoas fictícias e empresas de exemplo. Foi criado para demonstração no celular, sem custo de licença.</p>
+          <p>Qualquer pessoa com o link pode abrir a página, mas os registros não são compartilhados entre aparelhos. O sistema não substitui a contabilidade, a folha de pagamento, o eSocial nem os documentos oficiais do condomínio.</p>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="navigation.js" defer></script>
+  <script src="directory.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>
