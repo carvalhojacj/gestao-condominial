@@ -124,10 +124,23 @@ function directoryTitle(type, item) {
   return item.company;
 }
 
-function directoryDetails(type, item) {
-  if (type === 'residents') return [`Unidade ${item.unit}`, item.relationship];
-  if (type === 'employees') return [item.job, item.shift && `Turno: ${item.shift}`, item.status].filter(Boolean);
-  return [item.service, item.contractEnd && `Contrato até: ${formatDirectoryDate(item.contractEnd)}`, item.status].filter(Boolean);
+function directoryRowData(type, item) {
+  if (type === 'residents') return {keyLabel: 'Unidade', key: item.unit, detailLabel: 'Vínculo', detail: item.relationship};
+  if (type === 'employees') return {keyLabel: 'Função', key: item.job, detailLabel: 'Turno e situação', detail: [item.shift && `Turno: ${item.shift}`, item.status].filter(Boolean).join(' · ')};
+  return {keyLabel: 'Serviço', key: item.service, detailLabel: 'Contrato e situação', detail: [item.contractEnd && `Contrato até: ${formatDirectoryDate(item.contractEnd)}`, item.status].filter(Boolean).join(' · ')};
+}
+
+function directoryCell(area, label, value, heading = false) {
+  const cell = document.createElement(heading ? 'h4' : 'div');
+  cell.className = `directory-cell directory-cell--${area}`;
+  if (!heading) {
+    const caption = document.createElement('span');
+    caption.className = 'sr-only';
+    caption.textContent = `${label}: `;
+    cell.append(caption);
+  }
+  cell.append(document.createTextNode(value));
+  return cell;
 }
 
 function resetDirectoryForm(type) {
@@ -176,20 +189,32 @@ function renderDirectory(type) {
   const items = [...directory[type]].sort((a, b) => type === 'residents'
     ? a.unit.localeCompare(b.unit, 'pt-BR', {numeric: true}) || a.name.localeCompare(b.name, 'pt-BR')
     : directoryTitle(type, a).localeCompare(directoryTitle(type, b), 'pt-BR'));
+  if (items.length) {
+    const header = document.createElement('div');
+    header.className = `directory-grid directory-list-header${type === 'residents' ? ' directory-grid--residents' : ''}`;
+    header.setAttribute('aria-hidden', 'true');
+    const labels = directoryRowData(type, items[0]);
+    for (const [area, label] of [['name', type === 'vendors' ? 'Empresa' : type === 'residents' ? 'Morador' : 'Funcionário'], ['key', labels.keyLabel], ['detail', labels.detailLabel], ['actions', 'Ações']]) {
+      const cell = document.createElement('span');
+      cell.className = `directory-cell--${area}`;
+      cell.textContent = label;
+      header.append(cell);
+    }
+    list.append(header);
+  }
   for (const item of items) {
     const article = document.createElement('article');
-    article.className = 'record';
+    article.className = `record directory-grid directory-row${type === 'residents' ? ' directory-grid--residents' : ''}`;
     article.dataset.recordId = item.id;
     article.tabIndex = -1;
-    const title = document.createElement('h4');
-    title.textContent = directoryTitle(type, item);
-    article.append(title);
-    const details = document.createElement('div');
-    details.className = 'record-meta';
-    details.textContent = directoryDetails(type, item).join(' · ');
-    article.append(details);
+    const row = directoryRowData(type, item);
+    article.append(
+      directoryCell('name', '', directoryTitle(type, item), true),
+      directoryCell('key', row.keyLabel, row.key),
+      directoryCell('detail', row.detailLabel, row.detail)
+    );
     const actions = document.createElement('div');
-    actions.className = 'actions';
+    actions.className = 'actions directory-cell--actions';
     const edit = document.createElement('button');
     edit.type = 'button';
     edit.className = 'secondary';

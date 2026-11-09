@@ -145,17 +145,37 @@ function renderFinance(planned, spent) {
     : 'O realizado está igual ao previsto nas atividades cadastradas.';
   const body = $('finance-by-nature');
   body.replaceChildren();
+  const mobile = $('finance-by-nature-mobile');
+  mobile.replaceChildren();
   for (const [value, label] of [['Ordinária', 'Ordinária'], ['Eventual', 'Eventual'], ['', 'Não informada']]) {
     const group = activities.filter(item => item.expenseNature === value);
     const groupPlanned = group.reduce((sum, item) => sum + cents(item.budget), 0);
     const groupSpent = group.reduce((sum, item) => sum + cents(item.actual), 0);
+    const values = [label, String(group.length), moneyFromCents(groupPlanned), moneyFromCents(groupSpent), moneyFromCents(groupSpent - groupPlanned)];
     const row = document.createElement('tr');
-    for (const cellValue of [label, String(group.length), moneyFromCents(groupPlanned), moneyFromCents(groupSpent), moneyFromCents(groupSpent - groupPlanned)]) {
+    for (const cellValue of values) {
       const cell = document.createElement('td');
       cell.textContent = cellValue;
       row.append(cell);
     }
     body.append(row);
+    const card = document.createElement('article');
+    card.className = 'finance-mobile-card';
+    const title = document.createElement('h5');
+    title.textContent = label;
+    card.append(title);
+    const details = document.createElement('dl');
+    for (const [caption, amount] of [['Atividades', values[1]], ['Previsto', values[2]], ['Realizado', values[3]], ['Diferença', values[4]]]) {
+      const fact = document.createElement('div');
+      const term = document.createElement('dt');
+      term.textContent = caption;
+      const definition = document.createElement('dd');
+      definition.textContent = amount;
+      fact.append(term, definition);
+      details.append(fact);
+    }
+    card.append(details);
+    mobile.append(card);
   }
 }
 
@@ -177,7 +197,8 @@ function renderReceipts() {
   }
   for (const item of linked) {
     const article = document.createElement('article');
-    article.className = 'record';
+    article.className = 'record receipt-row';
+    const summary = document.createElement('div');
     const title = document.createElement('h4');
     title.textContent = item.description;
     const meta = document.createElement('div');
@@ -188,7 +209,8 @@ function renderReceipts() {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.textContent = 'Abrir comprovante';
-    article.append(title, meta, link);
+    summary.append(title, meta);
+    article.append(summary, link);
     container.append(article);
   }
 }

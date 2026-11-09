@@ -17,6 +17,7 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; }
 button, input, select, textarea { font: inherit; }
@@ -163,6 +164,23 @@ section[data-view] h4 { margin: 25px 0 12px; font-size: 1rem; }
 .record .actions { margin-top: 12px; }
 .record .actions button { min-height: 40px; padding: 7px 12px; font-size: .84rem; }
 .record .actions a { font-size: .86rem; font-weight: 700; }
+.directory-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr) auto; grid-template-areas: "name key detail actions"; align-items: center; gap: 12px 16px; }
+.directory-grid--residents { grid-template-columns: minmax(80px, .5fr) minmax(0, 1.4fr) minmax(0, 1fr) auto; grid-template-areas: "key name detail actions"; }
+.directory-cell--name { grid-area: name; min-width: 0; overflow-wrap: anywhere; }
+.directory-cell--key { grid-area: key; min-width: 0; overflow-wrap: anywhere; }
+.directory-cell--detail { grid-area: detail; min-width: 0; overflow-wrap: anywhere; }
+.directory-cell--actions { grid-area: actions; }
+.directory-list-header { padding: 10px 12px; border-bottom: 1px solid var(--border); border-radius: 8px 8px 0 0; background: #f0f5f8; color: #345369; font-size: .77rem; font-weight: 750; }
+.directory-row { padding: 12px; border-top: 0; border-bottom: 1px solid var(--border); font-size: .89rem; }
+.directory-row:hover { background: var(--surface-muted); }
+.directory-row h4.directory-cell--name { margin: 0 !important; font-size: .92rem !important; }
+.directory-row .directory-cell--key { color: #2e536b; font-weight: 650; }
+.directory-row .directory-cell--detail { color: var(--text-muted); }
+.directory-row .actions { margin: 0; flex-wrap: nowrap; justify-content: flex-end; }
+.directory-row .actions button { min-height: 40px; }
+.receipt-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 18px; }
+.receipt-row h4 { margin-bottom: 3px !important; }
+.receipt-row > a { font-size: .88rem; font-weight: 700; white-space: nowrap; }
 .record-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .record-header h4 { margin-bottom: 3px !important; }
 .status-chip { display: inline-flex; align-items: center; min-height: 25px; padding: 3px 8px; border-radius: 999px; background: #edf2f6; color: #36556a; font-size: .73rem; font-weight: 700; white-space: nowrap; }
@@ -185,6 +203,12 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
 .financial-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .financial-metrics .metric { background: #f6f9fb; }
 .financial-metrics .metric strong { font-size: 1.25rem; }
+.finance-mobile-list { display: none; }
+.finance-mobile-card { padding: 14px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-muted); }
+.finance-mobile-card h5 { margin: 0 0 10px; color: var(--brand); font-size: .91rem; }
+.finance-mobile-card dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 15px; margin: 0; }
+.finance-mobile-card dt { color: var(--text-muted); font-size: .76rem; }
+.finance-mobile-card dd { margin: 2px 0 0; font-size: .86rem; font-weight: 700; overflow-wrap: anywhere; }
 .finance-interpretation { margin: 16px 0 0; color: var(--text-muted); font-size: .88rem; }
 .mobile-hint { display: none; }
 .backup-explainer { max-width: 760px; margin-bottom: 18px; padding: 15px 17px; border: 1px solid #cfdeea; border-radius: 9px; background: #f0f7fc; font-size: .88rem; }
@@ -209,6 +233,14 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mobile-hint { display: block; margin: 5px 0 9px; color: var(--text-muted); font-size: .8rem; }
+  .directory-list-header { display: none; }
+  .directory-grid, .directory-grid--residents { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name key" "detail actions"; gap: 7px 12px; }
+  .directory-row { padding: 13px 0; }
+  .directory-row .directory-cell--key { max-width: 38vw; text-align: right; font-size: .82rem; }
+  .directory-row .directory-cell--detail { font-size: .8rem; }
+  .finance-table { display: none; }
+  .finance-mobile-list { display: grid; gap: 10px; }
+  .receipt-row { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
   .brand-mark { flex-basis: 36px; width: 36px; height: 36px; font-size: .75rem; }

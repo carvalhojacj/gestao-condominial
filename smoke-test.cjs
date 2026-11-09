@@ -37,12 +37,14 @@ async function main() {
     assert.equal(await page.locator('#residents-count').textContent(), '1');
     assert.equal(await page.locator('#residents-list-count').textContent(), '1');
     assert.equal(await page.locator('#resident-form-panel').isHidden(), true);
+    assert.equal(await page.locator('#residents-list .directory-row').count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.locator('#residents-list .record').getByRole('button', {name: 'Editar'}).click();
     assert.equal(await page.locator('#resident-form-title').textContent(), 'Editar morador');
     assert.equal(await page.locator('form[data-directory="residents"] [name="unit"]').inputValue(), '101');
     await page.locator('form[data-directory="residents"] [name="unit"]').fill('102');
     await page.getByRole('button', {name: 'Atualizar morador'}).click();
-    assert.match(await page.locator('#residents-list').textContent(), /Unidade 102/);
+    assert.match(await page.locator('#residents-list').textContent(), /Unidade:\s*102/);
     assert.equal(await page.locator('#resident-form-panel').isHidden(), true);
 
     await page.locator('#side-nav a[href="#pessoas/funcionarios"]').click();
@@ -113,8 +115,12 @@ async function main() {
     assert.match(await page.locator('#finance-percent').textContent(), /20,3/);
     assert.match(await page.locator('#finance-interpretation').textContent(), /acima do previsto/i);
     assert.match(await page.locator('#finance-by-nature').textContent(), /Eventual/);
+    assert.equal(await page.locator('#finance-by-nature-mobile .finance-mobile-card').count(), 3);
+    assert.equal(await page.locator('#finance-by-nature-mobile').isVisible(), true);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.locator('#side-nav a[href="#financeiro/comprovantes"]').click();
     assert.equal(await page.locator('#receipt-items .record').count(), 1);
+    assert.equal(await page.locator('#receipt-items .receipt-row').count(), 1);
 
     await page.locator('.top-nav [data-area="configuracoes"]').click();
     const downloadPromise = page.waitForEvent('download');

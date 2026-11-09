@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#153d60">
   <title>Gestão condominial</title>
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -191,8 +191,8 @@
           </div>
           <p id="finance-interpretation" class="finance-interpretation">Cadastre atividades para comparar os valores.</p>
           <h4>Por natureza da despesa</h4>
-          <p class="mobile-hint">Deslize a tabela para ver todas as colunas.</p>
-          <div class="table-scroll" role="region" aria-label="Resumo por natureza da despesa" tabindex="0"><table><thead><tr><th scope="col">Natureza</th><th scope="col">Atividades</th><th scope="col">Previsto</th><th scope="col">Realizado</th><th scope="col">Diferença</th></tr></thead><tbody id="finance-by-nature"></tbody></table></div>
+          <div class="table-scroll finance-table" role="region" aria-label="Resumo por natureza da despesa" tabindex="0"><table><thead><tr><th scope="col">Natureza</th><th scope="col">Atividades</th><th scope="col">Previsto</th><th scope="col">Realizado</th><th scope="col">Diferença</th></tr></thead><tbody id="finance-by-nature"></tbody></table></div>
+          <div id="finance-by-nature-mobile" class="finance-mobile-list" aria-label="Resumo por natureza da despesa"></div>
         </section>
 
         <section data-view="financeiro/comprovantes" aria-labelledby="receipts-title" hidden>
@@ -218,7 +218,7 @@
   </div>
   <script src="navigation.js?v=4" defer></script>
   <script src="ui-feedback.js?v=4" defer></script>
-  <script src="directory.js?v=5" defer></script>
-  <script src="app.js?v=4" defer></script>
+  <script src="directory.js?v=6" defer></script>
+  <script src="app.js?v=6" defer></script>
 </body>
 </html>
