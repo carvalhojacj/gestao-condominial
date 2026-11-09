@@ -56,7 +56,7 @@ function renderNavigation() {
   document.querySelectorAll('.top-nav [data-area]').forEach(link => {
     const active = link.dataset.area === areaKey;
     link.classList.toggle('active', active);
-    if (active) link.setAttribute('aria-current', 'true');
+    if (active) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
 
@@ -74,7 +74,9 @@ function renderNavigation() {
   }
   document.getElementById('side-label').textContent = area.label;
   document.getElementById('breadcrumb').textContent = area.label;
-  document.getElementById('page-title').textContent = view.label;
+  document.getElementById('page-title').textContent = route === 'plano/nova'
+    ? document.getElementById('form-title').textContent
+    : view.label;
   document.getElementById('page-description').textContent = view.description;
   document.querySelectorAll('[data-view]').forEach(section => {
     section.hidden = section.dataset.view !== route;
