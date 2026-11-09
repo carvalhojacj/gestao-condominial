@@ -6,7 +6,7 @@ Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 
 ## Como usar
 
-1. Abra a página em um navegador atualizado. Para uso regular no celular, publique os dois arquivos juntos em uma hospedagem estática HTTPS.
+1. Abra o endereço publicado acima em um navegador atualizado no celular que será usado pela administração.
 2. Cadastre cada atividade com descrição e, quando disponíveis, categoria, prazo, periodicidade e valor previsto.
 3. Atualize a situação, a data de execução e o valor realizado. Uma atividade marcada como **Concluída** exige data de conclusão.
 4. Use os filtros por situação, categoria e mês do prazo. O painel mostra os totais e a diferença entre realizado e previsto.
