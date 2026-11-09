@@ -11,11 +11,11 @@ A antiga aba **Financeiro > Previsto x realizado** repetia os valores das ativid
 - A busca e os filtros por tipo, mês e categoria alteram a lista, enquanto os indicadores de entrada, saída e saldo continuam abrangendo todos os lançamentos. Isso é informado na tela.
 - **Financeiro > Categorias** soma os lançamentos por tipo, categoria e subcategoria. **Comprovantes** continua reunindo os links associados às atividades.
 - Os seis lançamentos iniciais são fictícios e têm identificadores estáveis. O cadastro automático é feito uma vez por navegador, inclusive para quem já usava a versão anterior, preservando registros existentes. O botão de exemplos pode repor itens apagados.
-- A cópia JSON agora usa versão 3 e inclui os lançamentos. As versões 1 e 2 continuam aceitas; ao importá-las, os lançamentos atuais são mantidos.
+- A cópia JSON usa versão 4 e inclui lançamentos e categorias. As versões 1, 2 e 3 continuam aceitas. As versões 1 e 2 mantêm todo o financeiro; a versão 3 substitui os lançamentos e mantém as categorias atuais.
 
 ## Limites e próximos passos
 
-O protótipo usa saldo inicial zero. Não acessa bancos, não faz conciliação, não controla contas a pagar/receber nem gera prestação de contas oficial. As categorias são fixas e genéricas. A validação com a administração, na visita presencial, deve verificar se os nomes e agrupamentos correspondem à rotina local antes de eventual uso além da demonstração. Cadastros e extratos permanecem apenas no navegador; usar somente dados fictícios na página pública.
+O protótipo usa saldo inicial zero. Não acessa bancos, não faz conciliação, não controla contas a pagar/receber nem gera prestação de contas oficial. As categorias começam com uma lista genérica e podem ser alteradas na aba **Categorias**. Renomear atualiza os lançamentos vinculados; excluir uma classificação em uso exige primeiro reclassificar ou remover esses lançamentos. A validação com a administração, na visita presencial, deve verificar se os nomes e agrupamentos correspondem à rotina local antes de eventual uso além da demonstração. Cadastros e extratos permanecem apenas no navegador; usar somente dados fictícios na página pública.
 
 ## Referências de desenho
 

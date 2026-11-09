@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#153d60">
   <title>Gestão condominial</title>
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -235,9 +235,26 @@
         </section>
 
         <section data-view="financeiro/categorias" aria-labelledby="ledger-categories-title" hidden>
-          <h3 id="ledger-categories-title">Categorias e subcategorias</h3>
-          <p class="section-intro">Totais de entradas e saídas dos lançamentos registrados, sem misturar valores planejados.</p>
+          <div class="section-heading"><h3 id="ledger-categories-title">Categorias e subcategorias</h3><button id="new-finance-category" type="button" aria-controls="finance-category-form-panel" aria-expanded="false">Nova categoria</button></div>
+          <p class="section-intro">Organize as entradas e saídas. Os totais vêm dos lançamentos; categorias sem lançamentos também aparecem para edição.</p>
           <div id="ledger-category-summary" class="category-summary"></div>
+          <div id="finance-category-form-panel" class="directory-form-panel" role="region" aria-labelledby="finance-category-form-title" hidden>
+            <h4 id="finance-category-form-title">Nova categoria</h4>
+            <form id="finance-category-form" class="form-grid compact-form">
+              <label>Tipo *<select id="finance-category-type"><option>Entrada</option><option>Saída</option></select></label>
+              <label>Nome da categoria *<input id="finance-category-name" maxlength="60" required placeholder="Ex.: Manutenção"></label>
+              <label id="finance-category-first-label" class="wide">Primeira subcategoria *<input id="finance-category-first" maxlength="60" required placeholder="Ex.: Preventiva"></label>
+              <div class="actions wide"><button type="submit">Salvar categoria</button><button id="cancel-finance-category" type="button" class="secondary">Cancelar</button></div>
+            </form>
+          </div>
+          <div id="finance-subcategory-form-panel" class="directory-form-panel" role="region" aria-labelledby="finance-subcategory-form-title" hidden>
+            <h4 id="finance-subcategory-form-title">Nova subcategoria</h4>
+            <p id="finance-subcategory-parent" class="section-intro"></p>
+            <form id="finance-subcategory-form" class="form-grid compact-form">
+              <label class="wide">Nome da subcategoria *<input id="finance-subcategory-name" maxlength="60" required placeholder="Ex.: Corretiva"></label>
+              <div class="actions wide"><button type="submit">Salvar subcategoria</button><button id="cancel-finance-subcategory" type="button" class="secondary">Cancelar</button></div>
+            </form>
+          </div>
         </section>
 
         <section data-view="financeiro/comprovantes" aria-labelledby="receipts-title" hidden>
@@ -250,7 +267,7 @@
           <h3 id="backup-title">Cópia de segurança</h3>
           <p class="section-intro">Os registros ficam neste navegador. Exporte uma cópia após cada atualização e guarde o arquivo em local privado.</p>
           <div class="backup-explainer"><strong>Dados fictícios para demonstração</strong><p>Os exemplos são incluídos automaticamente uma vez, mesmo em navegadores já usados, sem substituir registros existentes. Se algum exemplo for excluído, o botão abaixo pode repô-lo.</p><button id="add-demo-data" type="button" class="secondary">Adicionar dados fictícios</button></div>
-          <div class="backup-explainer"><strong>Antes de importar</strong><p>Uma cópia da versão 3 substitui atividades, cadastros e lançamentos deste aparelho. Cópias antigas das versões 1 e 2 mantêm os lançamentos atuais. O sistema pedirá confirmação antes da troca.</p></div>
+          <div class="backup-explainer"><strong>Antes de importar</strong><p>Uma cópia da versão 4 substitui atividades, cadastros, lançamentos e categorias deste aparelho. A versão 3 substitui os lançamentos e mantém as categorias atuais; versões 1 e 2 mantêm todo o financeiro. O sistema pedirá confirmação antes da troca.</p></div>
           <div class="actions"><button id="export" type="button">Exportar JSON</button><button id="import-trigger" type="button" class="secondary">Importar JSON</button><input id="import-file" type="file" accept="application/json,.json" aria-label="Selecionar cópia de segurança JSON" hidden></div>
         </section>
 
@@ -266,8 +283,8 @@
   <script src="ui-feedback.js?v=4" defer></script>
   <script src="demo-seed.js?v=3" defer></script>
   <script src="directory.js?v=11" defer></script>
-  <script src="finance.js?v=1" defer></script>
-  <script src="app.js?v=12" defer></script>
+  <script src="finance.js?v=2" defer></script>
+  <script src="app.js?v=13" defer></script>
 </body>
 </html>
 

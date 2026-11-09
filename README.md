@@ -11,8 +11,8 @@ Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 - **Painel:** destaca atividades, concluídas, atrasadas, valores, próximos prazos e ações rápidas.
 - **Plano de trabalho:** cadastra, edita, filtra e exclui atividades. Cada atividade pode ter natureza da despesa, categoria, responsável, empresa prestadora, prazo, situação, valores e link HTTPS de comprovante. A página **Previsto x realizado** resume os valores do plano.
 - **Pessoas:** permite cadastrar unidades e moradores, funcionários e empresas prestadoras para a demonstração. Use apenas nomes e informações fictícias.
-- **Financeiro:** registra entradas e saídas em um extrato demonstrativo com data, descrição, categoria, subcategoria, valor e saldo após cada lançamento. Permite busca, filtros, edição, exclusão e resumo por categoria. Reúne também os links dos comprovantes das atividades.
-- **Configurações:** exporta e importa uma cópia JSON dos registros. A versão 3 inclui atividades, cadastros e lançamentos. Cópias antigas das versões 1 e 2 continuam importáveis e preservam os lançamentos financeiros atuais.
+- **Financeiro:** registra entradas e saídas em um extrato demonstrativo com data, descrição, categoria, subcategoria, valor e saldo após cada lançamento. Permite busca, filtros, edição, exclusão e resumo por categoria. Na aba **Categorias**, é possível criar, renomear e excluir categorias e subcategorias. Reúne também os links dos comprovantes das atividades.
+- **Configurações:** exporta e importa uma cópia JSON dos registros. A versão 4 inclui atividades, cadastros, lançamentos e categorias. Cópias antigas das versões 1, 2 e 3 continuam importáveis; as versões 1 e 2 mantêm todo o financeiro e a versão 3 mantém as categorias atuais.
 
 Nas três telas de **Pessoas**, a relação completa aparece primeiro, em linhas compactas. Moradores são ordenados por unidade; funcionários e empresas, por nome. O botão de novo cadastro abre o formulário abaixo da lista; ao salvar ou cancelar, a relação volta a ser o foco. No celular, as linhas se reorganizam sem rolagem lateral.
 
@@ -37,7 +37,7 @@ O título e o botão do formulário indicam quando uma atividade está em ediç�
 - Cada navegador recebe uma cópia independente dos exemplos. Registros adicionados ou alterados em um aparelho não aparecem em outro. Não há login, sincronização ou banco de dados.
 - Esta versão pública é apenas para demonstração com dados fictícios. Não cadastre CPF, telefone real, folha de pagamento, inadimplência ou dados financeiros sigilosos.
 - O extrato é um controle manual de demonstração, separado do plano. O saldo inicial do controle é zero e o saldo exibido resulta apenas dos lançamentos salvos neste navegador. Ele não consulta banco, não concilia contas e não constitui escrituração contábil ou prestação de contas oficial.
-- As categorias e subcategorias são uma lista inicial de demonstração, inspirada na organização do livro contábil fornecido; não importamos valores ou nomes reais desse arquivo.
+- As categorias e subcategorias começam com uma lista de demonstração, inspirada na organização do livro contábil fornecido. Podem ser criadas, renomeadas e excluídas no próprio navegador. Uma classificação em uso só pode ser excluída após a reclassificação ou remoção dos lançamentos vinculados. Não importamos valores ou nomes reais do livro.
 - O documento demonstrativo é público e está marcado como fictício. Para comprovantes verdadeiros, o sistema guarda apenas o link HTTPS; configure o acesso no serviço em que o arquivo for armazenado.
 - A periodicidade é informativa; o sistema não gera atividades recorrentes. Crie cada ocorrência separadamente quando precisar de prazo e valor próprios.
 - Guarde o JSON exportado em local privado. Navegação privada, limpeza de dados do navegador ou troca de aparelho podem apagar os cadastros locais.

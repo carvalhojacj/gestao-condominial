@@ -198,6 +198,26 @@ async function main() {
     assert.match(await page.locator('#ledger-balance').textContent(), /-50,25/);
     await page.locator('#side-nav a[href="#financeiro/categorias"]').click();
     assert.match(await page.locator('#ledger-category-summary').textContent(), /Consumo/);
+    await page.locator('#ledger-category-summary .category-card').filter({hasText: 'Consumo'}).getByRole('button', {name: 'Editar categoria'}).click();
+    await page.locator('#finance-category-name').fill('Utilidades');
+    await page.getByRole('button', {name: 'Atualizar categoria'}).click();
+    assert.match(await page.locator('#ledger-category-summary').textContent(), /Utilidades/);
+    await page.getByRole('button', {name: 'Nova categoria'}).click();
+    await page.locator('#finance-category-type').selectOption('Saída');
+    await page.locator('#finance-category-name').fill('Materiais');
+    await page.locator('#finance-category-first').fill('Pintura');
+    await page.getByRole('button', {name: 'Salvar categoria'}).click();
+    await page.locator('#ledger-category-summary .category-card').filter({hasText: 'Materiais'}).getByRole('button', {name: 'Nova subcategoria'}).click();
+    await page.locator('#finance-subcategory-name').fill('Elétrica');
+    await page.getByRole('button', {name: 'Salvar subcategoria'}).click();
+    await page.locator('#ledger-category-summary .category-card').filter({hasText: 'Materiais'}).getByRole('button', {name: 'Excluir subcategoria'}).last().click();
+    await page.getByRole('button', {name: 'Confirmar exclusão'}).click();
+    assert.doesNotMatch(await page.locator('#ledger-category-summary').textContent(), /Elétrica/);
+    await page.locator('#ledger-category-summary .category-card').filter({hasText: 'Materiais'}).getByRole('button', {name: 'Excluir categoria'}).click();
+    await page.getByRole('button', {name: 'Confirmar exclusão'}).click();
+    assert.doesNotMatch(await page.locator('#ledger-category-summary').textContent(), /Materiais/);
+    await page.locator('#side-nav a[href="#financeiro/extrato"]').click();
+    assert.match(await page.locator('#ledger-mobile').textContent(), /Utilidades \/ Água/);
     await page.locator('#side-nav a[href="#financeiro/comprovantes"]').click();
     assert.equal(await page.locator('#receipt-items .record').count(), 1);
     assert.equal(await page.locator('#receipt-items .receipt-row').count(), 1);
@@ -208,14 +228,16 @@ async function main() {
     assert.match(await page.locator('#message').textContent(), /download iniciado/i);
     const download = await downloadPromise;
     const backup = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-    assert.equal(backup.version, 3);
+    assert.equal(backup.version, 4);
     assert.equal(backup.activities[0].actual, '120.25');
     assert.equal(backup.activities[0].supplier, 'Empresa Exemplo');
     assert.equal(backup.directory.residents.length, 1);
     assert.equal(backup.directory.employees.length, 1);
     assert.equal(backup.directory.vendors.length, 1);
-    assert.equal(backup.finance.length, 1);
-    assert.equal(backup.finance[0].type, 'Saída');
+    assert.equal(backup.finance.records.length, 1);
+    assert.equal(backup.finance.records[0].type, 'Saída');
+    assert.equal(backup.finance.records[0].category, 'Utilidades');
+    assert.deepEqual(backup.finance.categories.Saída.Utilidades, ['Água', 'Energia', 'Gás']);
 
     await page.locator('.top-nav [data-area="plano"]').click();
     await page.locator('#items .record').getByRole('button', {name: 'Excluir'}).click();
@@ -263,7 +285,7 @@ async function main() {
     assert.equal(await page.locator('#total').textContent(), '6');
     assert.equal(await page.locator('#ledger-count').textContent(), '7');
     assert.deepEqual(errors, []);
-    console.log('OK: exemplos, navegação, cadastros, plano, extrato e backups v1/v3 em tela de celular');
+    console.log('OK: exemplos, navegação, cadastros, plano, extrato, categorias e backups v1/v4 em tela de celular');
   } finally { await browser.close(); }
 }
 

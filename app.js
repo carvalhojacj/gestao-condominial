@@ -472,7 +472,7 @@ $('add-demo-data').addEventListener('click', () => addDemoData());
 
 $('export').addEventListener('click', () => {
   try {
-    const backup = {version: 3, exportedAt: new Date().toISOString(), activities, directory: window.demoDirectory.exportData(), finance: window.financeLedger.exportData()};
+    const backup = {version: 4, exportedAt: new Date().toISOString(), activities, directory: window.demoDirectory.exportData(), finance: window.financeLedger.exportData()};
     const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -491,19 +491,22 @@ $('import-file').addEventListener('change', async event => {
   try {
     if (file.size > MAX_BACKUP_BYTES) throw new Error('O arquivo de cópia de segurança é grande demais.');
     const backup = JSON.parse(await file.text());
-    if (!backup || ![1, 2, 3].includes(backup.version)) throw new Error('Versão de cópia de segurança não reconhecida.');
+    if (!backup || ![1, 2, 3, 4].includes(backup.version)) throw new Error('Versão de cópia de segurança não reconhecida.');
     const restored = normalizeList(backup.activities, true);
     const restoredDirectory = backup.version >= 2 ? window.demoDirectory.validateData(backup.directory) : null;
-    const restoredFinance = backup.version === 3 ? window.financeLedger.validateData(backup.finance) : null;
+    const restoredFinance = backup.version === 4 ? window.financeLedger.validateData(backup.finance) : null;
+    const restoredLegacyFinance = backup.version === 3 ? window.financeLedger.validateLegacyData(backup.finance) : null;
     const prompt = restoredFinance
-      ? 'Substituir atividades, cadastros e lançamentos financeiros atuais pelos dados da cópia?'
+      ? 'Substituir atividades, cadastros, lançamentos e categorias financeiras atuais pelos dados da cópia?'
+      : restoredLegacyFinance
+      ? 'Substituir atividades, cadastros e lançamentos financeiros pelos dados da cópia? As categorias atuais serão mantidas.'
       : restoredDirectory
-      ? 'Substituir atividades e cadastros atuais pelos dados da cópia? Os lançamentos financeiros serão mantidos.'
+      ? 'Substituir atividades e cadastros atuais pelos dados da cópia? Lançamentos e categorias financeiras serão mantidos.'
       : `Substituir as ${activities.length} atividades atuais pelas ${restored.length} da cópia antiga? Cadastros de pessoas e lançamentos financeiros serão mantidos.`;
     if (!confirm(prompt)) { show('Importação cancelada.'); return; }
     activities = restored;
     const directorySaved = restoredDirectory ? window.demoDirectory.importData(restoredDirectory) : true;
-    const financeSaved = restoredFinance ? window.financeLedger.importData(restoredFinance) : true;
+    const financeSaved = restoredFinance ? window.financeLedger.importData(restoredFinance) : restoredLegacyFinance ? window.financeLedger.importLegacyData(restoredLegacyFinance) : true;
     storageCorrupt = false;
     resetForm(); render();
     if (directorySaved && financeSaved) savedMessage('Cópia importada.');
