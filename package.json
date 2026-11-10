@@ -4,11 +4,10 @@
   "version": "1.0.0",
   "description": "Protótipo acadêmico estático de gestão condominial",
   "scripts": {
-    "check": "node --check navigation.js && node --check ui-feedback.js && node --check demo-seed.js && node --check directory.js && node --check finance.js && node --check app.js && node --check smoke-test.cjs",
+    "check": "node --check navigation.js && node --check ui-feedback.js && node --check demo-seed.js && node --check directory.js && node --check finance.js && node --check documents.js && node --check app.js && node --check smoke-test.cjs",
     "test": "node smoke-test.cjs"
   },
   "devDependencies": {
     "playwright": "1.65.0"
   }
 }
-

@@ -16,6 +16,23 @@ async function main() {
     assert.equal(await seedPage.locator('#residents-count').textContent(), '4');
     assert.equal(await seedPage.locator('#employees-count').textContent(), '3');
     assert.equal(await seedPage.locator('#vendors-count').textContent(), '4');
+    await seedPage.locator('.top-nav [data-area="documentos"]').click();
+    assert.equal(await seedPage.locator('#side-nav a').count(), 5);
+    assert.equal(await seedPage.locator('#archive-count').textContent(), '12');
+    await seedPage.locator('#side-nav a[href="#documentos/assembleias"]').click();
+    assert.equal(await seedPage.locator('#meetings-list .documental-row').count(), 1);
+    await seedPage.locator('#side-nav a[href="#documentos/comunicados"]').click();
+    await seedPage.getByRole('button', {name: 'Novo comunicado'}).click();
+    await seedPage.locator('#comunicados-form-panel [name="title"]').fill('Teste fictício de comunicado');
+    await seedPage.locator('#comunicados-form-panel [name="date"]').fill('2026-11-10');
+    await seedPage.locator('#comunicados-form-panel [name="audience"]').fill('Moradores fictícios');
+    await seedPage.locator('#comunicados-form-panel [name="body"]').fill('Mensagem demonstrativa.');
+    await seedPage.getByRole('button', {name: 'Salvar comunicado'}).click();
+    assert.equal(await seedPage.locator('#notices-list .documental-row').count(), 2);
+    await seedPage.reload();
+    await seedPage.locator('.top-nav [data-area="documentos"]').click();
+    await seedPage.locator('#side-nav a[href="#documentos/comunicados"]').click();
+    assert.equal(await seedPage.locator('#notices-list .documental-row').count(), 2);
     await seedPage.locator('.top-nav [data-area="financeiro"]').click();
     assert.equal(await seedPage.locator('#ledger-count').textContent(), '6');
     assert.match(await seedPage.locator('#ledger-balance').textContent(), /3\.960,00/);
@@ -301,7 +318,8 @@ async function main() {
     assert.match(await page.locator('#message').textContent(), /download iniciado/i);
     const download = await downloadPromise;
     const backup = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-    assert.equal(backup.version, 5);
+    assert.equal(backup.version, 6);
+    assert.equal(backup.documental.length, 5);
     assert.equal(backup.activities[0].actual, '120.25');
     assert.equal(backup.activities[0].supplier, 'Empresa Exemplo');
     assert.equal(backup.directory.residents.length, 1);
@@ -379,9 +397,8 @@ async function main() {
     assert.equal(await page.locator('#ledger-count').textContent(), '7');
     assert.deepEqual(errors, []);
     await context.close();
-    console.log('OK: exemplos, navegação, cadastros, plano, extrato, documentos, categorias e backups v1/v4/v5 em tela de celular');
+    console.log('OK: exemplos, navegação, cadastros, plano, extrato, documentos, categorias e backups v1/v4/v6 em tela de celular');
   } finally { await browser.close(); }
 }
 
 main().then(() => process.exit(0)).catch(error => { console.error(error); process.exit(1); });
-

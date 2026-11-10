@@ -289,6 +289,14 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
 .document-row-main h4 { margin: 0 0 3px !important; }
 .document-row-meta { margin: 0; color: var(--text-muted); font-size: .83rem; }
 .document-row .actions { justify-content: flex-end; margin: 0; }
+.documental-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0; }
+.documental-controls label { flex: 1 1 180px; color: #304858; font-size: .85rem; font-weight: 700; }
+.documental-controls input, .documental-controls select { display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 9px 10px; border: 1px solid #aebfca; border-radius: 8px; background: #fff; color: #1d2935; }
+.documental-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px 20px; padding: 15px 0; border-bottom: 1px solid var(--border); }
+.documental-main { min-width: 0; overflow-wrap: anywhere; }
+.documental-main h4 { margin: 0 0 4px; color: var(--brand); font-size: .94rem; }
+.documental-row .actions { justify-content: flex-end; margin: 0; }
+.documental-row .actions button, .documental-row .actions a { min-height: 36px; padding: 6px 10px; font-size: .78rem; }
 .document-status-chip { display: inline-flex; align-items: center; min-height: 25px; padding: 3px 8px; border-radius: 999px; background: #fff0e6; color: #88430f; font-size: .73rem; font-weight: 700; }
 .document-status-chip.is-ready { background: #e7f1fa; color: #225d87; }
 .document-status-chip.is-checked { background: #e4f4e9; color: #24643b; }
@@ -352,6 +360,8 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   .ledger-mobile-list { display: block; }
   .receipt-row { grid-template-columns: 1fr; }
   .document-row { grid-template-columns: 1fr; }
+  .documental-row { grid-template-columns: 1fr; }
+  .documental-row .actions { justify-content: flex-start; }
   .document-row .actions { justify-content: flex-start; }
 }
 @media (max-width: 520px) {
@@ -383,4 +393,3 @@ td:not(:first-child), th:not(:first-child) { text-align: right; }
   button, .button-link, .quick-actions a { transition: none; }
   button:active, .button-link:active, .quick-actions a:hover { transform: none; }
 }
-

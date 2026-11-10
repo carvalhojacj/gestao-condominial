@@ -2,7 +2,7 @@
 
 Protótipo acadêmico para apresentar, no celular ou computador, o acompanhamento do plano de trabalho de um condomínio. Foi feito em HTML, CSS e JavaScript, sem pacotes externos nem servidor de dados.
 
-O sistema inclui automaticamente, uma única vez, um conjunto de dados **inteiramente fictícios**: cinco atividades, quatro moradores, três funcionários, quatro empresas, seis lançamentos financeiros e sete documentos financeiros de exemplo, além do documento demonstrativo de uma atividade. Isso também ocorre em navegadores já usados, sem substituir registros existentes. Em **Configurações**, o botão **Adicionar dados fictícios** pode repor exemplos excluídos.
+O sistema inclui automaticamente, uma única vez, um conjunto de dados **inteiramente fictícios**: cinco atividades, quatro moradores, três funcionários, quatro empresas, seis lançamentos financeiros, sete documentos financeiros e cinco registros administrativos de exemplo, além do documento demonstrativo de uma atividade. Isso também ocorre em navegadores já usados, sem substituir registros existentes. Em **Configurações**, o botão **Adicionar dados fictícios** pode repor exemplos excluídos.
 
 Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 
@@ -12,7 +12,8 @@ Endereço publicado: https://carvalhojacj.github.io/gestao-condominial/
 - **Plano de trabalho:** cadastra, edita, filtra e exclui atividades. Cada atividade pode ter natureza da despesa, categoria, responsável, empresa prestadora, prazo, situação, valores e link HTTPS de comprovante. A página **Previsto x realizado** resume os valores do plano.
 - **Pessoas:** permite cadastrar unidades e moradores, funcionários e empresas prestadoras para a demonstração. Use apenas nomes e informações fictícias.
 - **Financeiro:** registra entradas e saídas em um extrato demonstrativo com data, descrição, categoria, subcategoria, valor e saldo após cada lançamento. Cada movimentação pode ter vários documentos fictícios, e um documento pode estar ligado a mais de uma movimentação. A aba **Documentos** mantém também uma lista dos documentos que aguardam movimentação. A conferência manual com o extrato e a suficiência da documentação aparecem separadamente. **Categorias** permite criar, renomear e excluir categorias e subcategorias. **Comprovantes** continua reunindo os links das atividades do plano.
-- **Configurações:** exporta e importa uma cópia JSON dos registros. A versão 5 inclui atividades, cadastros, lançamentos, categorias, documentos e vínculos. Cópias das versões 1 a 4 continuam importáveis; a versão 4 não contém documentos, a versão 3 substitui lançamentos e mantém os documentos atuais sem vínculos com lançamentos removidos, e as versões 1 e 2 mantêm todo o financeiro.
+- **Documentos:** reúne no Acervo os registros administrativos e os documentos do Financeiro sem duplicação. Permite preparar assembleias com convocação, lista de presença imprimível e minuta de ata; criar comunicados; registrar ocorrências e advertências; e acompanhar prazos de contratos, seguros e laudos de demonstração. Os botões de impressão abrem uma página para imprimir ou salvar como PDF no navegador. Nada é enviado aos moradores nem assinado pelo sistema.
+- **Configurações:** exporta e importa uma cópia JSON dos registros. A versão 6 inclui atividades, cadastros, financeiro e a nova área Documentos. Cópias das versões 1 a 5 continuam importáveis; ao importar uma cópia antiga, os documentos administrativos atuais são mantidos.
 
 Nas três telas de **Pessoas**, a relação completa aparece primeiro, em linhas compactas. Moradores são ordenados por unidade; funcionários e empresas, por nome. O botão de novo cadastro abre o formulário abaixo da lista; ao salvar ou cancelar, a relação volta a ser o foco. No celular, as linhas se reorganizam sem rolagem lateral.
 
@@ -38,13 +39,14 @@ O título e o botão do formulário indicam quando uma atividade está em ediç�
 - Esta versão pública é apenas para demonstração com dados fictícios. Não cadastre CPF, telefone real, folha de pagamento, inadimplência ou dados financeiros sigilosos.
 - O extrato é um controle manual de demonstração, separado do plano. O saldo inicial do controle é zero e o saldo exibido resulta apenas dos lançamentos salvos neste navegador. O botão de conferência registra apenas a revisão manual de um extrato fictício; não consulta banco nem constitui escrituração contábil ou prestação de contas oficial.
 - As categorias e subcategorias começam com uma lista de demonstração, inspirada na organização do livro contábil fornecido. Podem ser criadas, renomeadas e excluídas no próprio navegador. Uma classificação em uso só pode ser excluída após a reclassificação ou remoção dos lançamentos vinculados. Não importamos valores ou nomes reais do livro.
-- Os documentos demonstrativos são públicos e estão marcados como fictícios. Esta versão não recebe nem armazena PDFs ou fotos; guarda somente descrições e links HTTPS opcionais. Não use links de documentos reais na página pública.
+- Os documentos demonstrativos são públicos e estão marcados como fictícios. Esta versão não recebe nem armazena PDFs, fotos ou assinaturas; guarda somente textos, descrições e links HTTPS opcionais. Não use links de documentos reais na página pública.
+- A lista de presença de uma assembleia pode preencher a minuta, mas não comprova comparecimento, quórum ou deliberação. Impressos e minutas precisam de conferência, assinaturas e formalidades pertinentes. Ocorrências e multas exigem análise da convenção e do caso concreto; o sistema não aplica penalidades automaticamente.
 - A periodicidade é informativa; o sistema não gera atividades recorrentes. Crie cada ocorrência separadamente quando precisar de prazo e valor próprios.
 - Guarde o JSON exportado em local privado. Navegação privada, limpeza de dados do navegador ou troca de aparelho podem apagar os cadastros locais.
 
 ## Arquivos para publicação
 
-Publique juntos `index.html`, `styles.css`, `navigation.js`, `ui-feedback.js`, `demo-seed.js`, `directory.js`, `finance.js`, `app.js` e `comprovante-demonstrativo.html`. `package.json` e `smoke-test.cjs` servem apenas ao desenvolvimento. O site publicado continua estático e sem pacotes de produção.
+Publique juntos `index.html`, `styles.css`, `navigation.js`, `ui-feedback.js`, `demo-seed.js`, `directory.js`, `finance.js`, `documents.js`, `app.js` e `comprovante-demonstrativo.html`. `package.json` e `smoke-test.cjs` servem apenas ao desenvolvimento. O site publicado continua estático e sem pacotes de produção.
 
 ## Teste de desenvolvimento
 
@@ -56,4 +58,3 @@ O diagnóstico, a proposta e a priorização estão em `AUDITORIA_E_PLANO_FRONTE
 
 A separação entre planejamento e extrato, com decisões de escopo e fontes, está em `REVISAO_FINANCEIRO_2026-11-09.md`.
 Os testes observados e as verificações ainda pendentes estão em `VALIDACAO_FINANCEIRO_2026-11-09.md`.
-

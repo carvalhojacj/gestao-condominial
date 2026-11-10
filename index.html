@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#153d60">
   <title>Gestão condominial</title>
-  <link rel="stylesheet" href="styles.css?v=15">
+  <link rel="stylesheet" href="styles.css?v=16">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -30,6 +30,7 @@
       <a href="#plano/atividades" data-area="plano">Plano de trabalho</a>
       <a href="#pessoas/moradores" data-area="pessoas">Pessoas</a>
       <a href="#financeiro/extrato" data-area="financeiro">Financeiro</a>
+      <a href="#documentos/acervo" data-area="documentos">Documentos</a>
       <a href="#configuracoes/backup" data-area="configuracoes">Configurações</a>
     </nav>
 
@@ -299,28 +300,64 @@
           <div id="receipt-items" class="record-list"></div>
         </section>
 
+        <section data-view="documentos/acervo" aria-labelledby="archive-title" hidden>
+          <div class="section-heading"><h3 id="archive-title">Acervo documental <span id="archive-count" class="list-count">0</span></h3><button type="button" data-doc-new="acervo">Novo documento</button></div>
+          <p class="section-intro">Consulte os registros administrativos e os documentos do financeiro em um lugar. Este protótipo guarda descrições e links fictícios, não arquivos.</p>
+          <div class="documental-controls"><label>Buscar<input id="archive-search" type="search" placeholder="Título ou tipo"></label><label>Tipo<select id="archive-filter"><option value="">Todos</option><option value="administrativo">Administrativos</option><option value="financeiro">Financeiros</option></select></label></div>
+          <div id="archive-list" class="record-list"></div>
+          <div id="acervo-form-panel" class="directory-form-panel" hidden></div>
+        </section>
+
+        <section data-view="documentos/assembleias" aria-labelledby="meetings-title" hidden>
+          <div class="section-heading"><h3 id="meetings-title">Assembleias <span id="meetings-count" class="list-count">0</span></h3><button type="button" data-doc-new="assembleias">Nova assembleia</button></div>
+          <p class="section-intro">A lista de presença pode preencher uma minuta. Confirme presenças, deliberações e assinaturas fora deste protótipo antes de tratar a ata como final.</p>
+          <div id="meetings-list" class="record-list"></div>
+          <div id="assembleias-form-panel" class="directory-form-panel" hidden></div>
+        </section>
+
+        <section data-view="documentos/comunicados" aria-labelledby="notices-title" hidden>
+          <div class="section-heading"><h3 id="notices-title">Avisos e comunicados <span id="notices-count" class="list-count">0</span></h3><button type="button" data-doc-new="comunicados">Novo comunicado</button></div>
+          <p class="section-intro">Crie textos fictícios e anote como foram divulgados. Salvar um texto aqui não envia mensagens aos moradores.</p>
+          <div id="notices-list" class="record-list"></div>
+          <div id="comunicados-form-panel" class="directory-form-panel" hidden></div>
+        </section>
+
+        <section data-view="documentos/ocorrencias" aria-labelledby="incidents-title" hidden>
+          <div class="section-heading"><h3 id="incidents-title">Ocorrências e advertências <span id="incidents-count" class="list-count">0</span></h3><button type="button" data-doc-new="ocorrencias">Nova ocorrência</button></div>
+          <p class="section-intro">Registre fatos e a regra pertinente. A aplicação de multa depende de análise da convenção e do caso; o sistema não calcula nem emite penalidade.</p>
+          <div id="incidents-list" class="record-list"></div>
+          <div id="ocorrencias-form-panel" class="directory-form-panel" hidden></div>
+        </section>
+
+        <section data-view="documentos/prazos" aria-labelledby="deadlines-title" hidden>
+          <div class="section-heading"><h3 id="deadlines-title">Prazos documentais <span id="deadlines-count" class="list-count">0</span></h3><button type="button" data-doc-new="prazos">Novo prazo</button></div>
+          <p class="section-intro">Controle datas informativas de contratos, seguros e laudos aplicáveis. Confira a periodicidade exigida no local.</p>
+          <div id="deadlines-list" class="record-list"></div>
+          <div id="prazos-form-panel" class="directory-form-panel" hidden></div>
+        </section>
+
         <section data-view="configuracoes/backup" aria-labelledby="backup-title" hidden>
           <h3 id="backup-title">Cópia de segurança</h3>
           <p class="section-intro">Os registros ficam neste navegador. Exporte uma cópia após cada atualização e guarde o arquivo em local privado.</p>
           <div class="backup-explainer"><strong>Dados fictícios para demonstração</strong><p>Os exemplos são incluídos automaticamente uma vez, mesmo em navegadores já usados, sem substituir registros existentes. Se algum exemplo for excluído, o botão abaixo pode repô-lo.</p><button id="add-demo-data" type="button" class="secondary">Adicionar dados fictícios</button></div>
-          <div class="backup-explainer"><strong>Antes de importar</strong><p>Uma cópia da versão 5 substitui atividades, cadastros, lançamentos, categorias e documentos deste aparelho. Cópias anteriores também podem ser importadas, mas não contêm os vínculos documentais desta versão. O sistema pedirá confirmação antes da troca.</p></div>
+          <div class="backup-explainer"><strong>Antes de importar</strong><p>Uma cópia da versão 6 substitui atividades, cadastros, financeiro e documentos administrativos deste aparelho. Cópias anteriores continuam importáveis; elas não contêm a nova área Documentos. O sistema pedirá confirmação antes da troca.</p></div>
           <div class="actions"><button id="export" type="button">Exportar JSON</button><button id="import-trigger" type="button" class="secondary">Importar JSON</button><input id="import-file" type="file" accept="application/json,.json" aria-label="Selecionar cópia de segurança JSON" hidden></div>
         </section>
 
         <section data-view="configuracoes/sobre" aria-labelledby="about-title" hidden>
           <h3 id="about-title">Sobre esta versão</h3>
-          <p>Este protótipo acadêmico organiza atividades do plano de trabalho, pessoas fictícias, empresas de exemplo, um extrato demonstrativo e documentos financeiros de exemplo vinculados às movimentações. Foi criado para demonstração no celular, sem custo de licença.</p>
+          <p>Este protótipo acadêmico organiza atividades do plano de trabalho, pessoas fictícias, empresas de exemplo, um extrato demonstrativo e documentos financeiros e administrativos fictícios. Foi criado para demonstração no celular, sem custo de licença.</p>
           <p>Qualquer pessoa com o link pode abrir a página, mas os registros não são compartilhados entre aparelhos. A conferência com o extrato é manual; não há conexão bancária nem armazenamento de arquivos. O sistema não substitui a contabilidade, a folha de pagamento, o eSocial nem os documentos oficiais do condomínio.</p>
         </section>
       </main>
     </div>
   </div>
-  <script src="navigation.js?v=7" defer></script>
+  <script src="navigation.js?v=8" defer></script>
   <script src="ui-feedback.js?v=4" defer></script>
   <script src="demo-seed.js?v=5" defer></script>
   <script src="directory.js?v=11" defer></script>
   <script src="finance.js?v=4" defer></script>
-  <script src="app.js?v=14" defer></script>
+  <script src="documents.js?v=1" defer></script>
+  <script src="app.js?v=15" defer></script>
 </body>
 </html>
-

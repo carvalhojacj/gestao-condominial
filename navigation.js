@@ -30,6 +30,16 @@ const NAV_AREAS = {
       {route: 'financeiro/comprovantes', label: 'Comprovantes', description: 'Localize os links associados às atividades.'}
     ]
   },
+  documentos: {
+    label: 'Documentos',
+    views: [
+      {route: 'documentos/acervo', label: 'Acervo', description: 'Encontre documentos administrativos e financeiros fictícios.'},
+      {route: 'documentos/assembleias', label: 'Assembleias', description: 'Prepare convocações, listas de presença e minutas de atas.'},
+      {route: 'documentos/comunicados', label: 'Comunicados', description: 'Redija avisos e registre sua divulgação.'},
+      {route: 'documentos/ocorrencias', label: 'Ocorrências', description: 'Organize fatos, advertências e multas em análise.'},
+      {route: 'documentos/prazos', label: 'Prazos', description: 'Acompanhe vencimentos de contratos, apólices e laudos fictícios.'}
+    ]
+  },
   configuracoes: {
     label: 'Configurações',
     views: [
@@ -98,4 +108,3 @@ window.addEventListener('hashchange', () => {
   document.getElementById('page-title').focus();
 });
 renderNavigation();
-
