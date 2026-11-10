@@ -174,7 +174,8 @@
       } else input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
       if (type !== 'select' && type !== 'textarea') input.type = type;
       if (typeof limit === 'number') input.maxLength = limit;
-      input.name = name; input.required = Boolean(required); input.value = item?.[name] || '';
+      input.name = name; input.required = Boolean(required);
+      if (item) input.value = item[name] || '';
       wrapper.append(input); form.append(wrapper);
     }
     const actions = document.createElement('div'); actions.className = 'actions wide';
@@ -185,7 +186,7 @@
       event.preventDefault();
       try {
         if (storageCorrupt) throw new Error('Os documentos salvos não puderam ser lidos. Importe uma cópia antes de editar.');
-        const raw = {id: item?.id || (crypto.randomUUID ? crypto.randomUUID() : `doc-${Date.now()}-${Math.random().toString(36).slice(2)}`), kind};
+        const raw = {id: item?.id || (globalThis.crypto?.randomUUID?.() || `doc-${Date.now()}-${Math.random().toString(36).slice(2)}`), kind};
         for (const [name] of fields[kind]) raw[name] = form.elements[name].value;
         const next = normalize(raw);
         if (!item && items.length >= MAX_ITEMS) throw new Error('Limite de documentos atingido.');
