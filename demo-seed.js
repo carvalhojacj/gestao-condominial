@@ -48,12 +48,29 @@ window.demoSeed = {
     }
   ],
   finance: [
-    {id: 'demo-finance-cotas-out', date: '2026-10-25', type: 'Entrada', description: 'Cotas condominiais de outubro (exemplo)', category: 'Cotas condominiais', subcategory: 'Ordinária', amount: '2500.00', notes: 'Recebimento inteiramente fictício.'},
+    {id: 'demo-finance-cotas-out', date: '2026-10-25', type: 'Entrada', description: 'Cotas condominiais de outubro (exemplo)', category: 'Cotas condominiais', subcategory: 'Ordinária', amount: '2500.00', notes: 'Recebimento inteiramente fictício.', bankReference: 'EXEMPLO-001'},
     {id: 'demo-finance-garagem', date: '2026-10-26', type: 'Entrada', description: 'Garagem extra (exemplo)', category: 'Receitas acessórias', subcategory: 'Garagem extra', amount: '120.00', notes: ''},
     {id: 'demo-finance-bombas', date: '2026-10-28', type: 'Saída', description: 'Revisão das bombas (exemplo)', category: 'Manutenção', subcategory: 'Preventiva', amount: '420.00', notes: 'Lançamento fictício relacionado à atividade de exemplo.'},
     {id: 'demo-finance-cotas-nov', date: '2026-11-05', type: 'Entrada', description: 'Cotas condominiais de novembro (exemplo)', category: 'Cotas condominiais', subcategory: 'Ordinária', amount: '2500.00', notes: ''},
-    {id: 'demo-finance-agua', date: '2026-11-06', type: 'Saída', description: 'Conta de água (exemplo)', category: 'Consumo', subcategory: 'Água', amount: '460.00', notes: ''},
+    {id: 'demo-finance-agua', date: '2026-11-06', type: 'Saída', description: 'Conta de água (exemplo)', category: 'Consumo', subcategory: 'Água', amount: '460.00', notes: '', bankReference: 'EXEMPLO-005', bankCheckedAt: '2026-11-07'},
     {id: 'demo-finance-energia', date: '2026-11-07', type: 'Saída', description: 'Energia das áreas comuns (exemplo)', category: 'Consumo', subcategory: 'Energia', amount: '280.00', notes: ''}
+  ],
+  financeDocuments: [
+    {id: 'demo-doc-agua-fatura', kind: 'Fatura', title: 'Fatura de água fictícia', date: '2026-11-03', amount: '460.00', url: 'https://carvalhojacj.github.io/gestao-condominial/comprovante-demonstrativo.html?documento=demo-doc-agua-fatura', notes: 'Documento somente para demonstração.'},
+    {id: 'demo-doc-agua-pagamento', kind: 'Comprovante de pagamento', title: 'Pagamento fictício da água', date: '2026-11-06', amount: '460.00', url: 'https://carvalhojacj.github.io/gestao-condominial/comprovante-demonstrativo.html?documento=demo-doc-agua-pagamento', notes: 'Documento somente para demonstração.'},
+    {id: 'demo-doc-energia-fatura', kind: 'Fatura', title: 'Fatura de energia fictícia', date: '2026-11-04', amount: '280.00', url: 'https://carvalhojacj.github.io/gestao-condominial/comprovante-demonstrativo.html?documento=demo-doc-energia-fatura', notes: 'Falta o comprovante de pagamento neste exemplo.'},
+    {id: 'demo-doc-cotas-recibo', kind: 'Comprovante de receita', title: 'Recebimento fictício de cotas de novembro', date: '2026-11-05', amount: '2500.00', url: 'https://carvalhojacj.github.io/gestao-condominial/comprovante-demonstrativo.html?documento=demo-doc-cotas-recibo', notes: 'Documento somente para demonstração.'},
+    {id: 'demo-doc-bombas-nota', kind: 'Nota fiscal', title: 'Nota fictícia da revisão das bombas', date: '2026-10-28', amount: '420.00', url: 'https://carvalhojacj.github.io/gestao-condominial/comprovante-demonstrativo.html?documento=demo-doc-bombas-nota', notes: 'Documento somente para demonstração.'},
+    {id: 'demo-doc-bombas-pagamento', kind: 'Comprovante de pagamento', title: 'Pagamento fictício das bombas', date: '2026-10-28', amount: '420.00', url: 'https://carvalhojacj.github.io/gestao-condominial/comprovante-demonstrativo.html?documento=demo-doc-bombas-pagamento', notes: 'Documento somente para demonstração.'},
+    {id: 'demo-doc-inbox-servico', kind: 'Fatura', title: 'Fatura fictícia aguardando pagamento', date: '2026-11-09', amount: '150.00', url: 'https://carvalhojacj.github.io/gestao-condominial/comprovante-demonstrativo.html?documento=demo-doc-inbox-servico', notes: 'Exemplo de documento recebido antes de aparecer no extrato.'}
+  ],
+  financeLinks: [
+    {transactionId: 'demo-finance-agua', documentId: 'demo-doc-agua-fatura', role: 'origem'},
+    {transactionId: 'demo-finance-agua', documentId: 'demo-doc-agua-pagamento', role: 'quitacao'},
+    {transactionId: 'demo-finance-energia', documentId: 'demo-doc-energia-fatura', role: 'origem'},
+    {transactionId: 'demo-finance-cotas-nov', documentId: 'demo-doc-cotas-recibo', role: 'origem'},
+    {transactionId: 'demo-finance-bombas', documentId: 'demo-doc-bombas-nota', role: 'origem'},
+    {transactionId: 'demo-finance-bombas', documentId: 'demo-doc-bombas-pagamento', role: 'quitacao'}
   ],
   directory: {
     residents: [

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#153d60">
   <title>Gestão condominial</title>
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -213,9 +213,10 @@
             <label>Tipo<select id="ledger-type-filter"><option value="">Todos</option><option value="Entrada">Entradas</option><option value="Saída">Saídas</option></select></label>
             <label>Mês<input id="ledger-month-filter" type="month"></label>
             <label>Categoria<select id="ledger-category-filter"><option value="">Todas</option></select></label>
+            <label>Documentação<select id="ledger-doc-filter"><option value="">Todas</option><option value="pending">Pendências</option><option value="ready">Prontas para conferir</option><option value="checked">Conferidas</option></select></label>
             <button id="ledger-clear-filters" type="button" class="subtle">Limpar filtros</button>
           </div>
-          <div class="table-scroll ledger-table" role="region" aria-label="Lançamentos financeiros" tabindex="0"><table><thead><tr><th scope="col">Data</th><th scope="col">Descrição</th><th scope="col">Categoria / subcategoria</th><th scope="col">Entrada</th><th scope="col">Saída</th><th scope="col">Saldo após</th><th scope="col">Ações</th></tr></thead><tbody id="ledger-rows"></tbody></table></div>
+          <div class="table-scroll ledger-table" role="region" aria-label="Lançamentos financeiros" tabindex="0"><table><thead><tr><th scope="col">Data</th><th scope="col">Descrição</th><th scope="col">Categoria / subcategoria</th><th scope="col">Entrada</th><th scope="col">Saída</th><th scope="col">Saldo após</th><th scope="col">Documentos</th><th scope="col">Ações</th></tr></thead><tbody id="ledger-rows"></tbody></table></div>
           <div id="ledger-mobile" class="ledger-mobile-list"></div>
           <div id="ledger-empty" class="empty-state" hidden></div>
           <div id="finance-form-panel" class="directory-form-panel" role="region" aria-labelledby="finance-form-title" hidden>
@@ -228,8 +229,43 @@
               <label>Categoria *<select id="transaction-category" required></select></label>
               <label>Subcategoria *<select id="transaction-subcategory" required></select></label>
               <label>Valor (R$) *<input id="transaction-amount" type="number" min="0.01" step="0.01" inputmode="decimal" required></label>
+              <label class="wide">Referência no extrato fictício<input id="transaction-reference" maxlength="80" placeholder="Ex.: identificador da operação"></label>
               <label class="wide">Observações<input id="transaction-notes" maxlength="300" placeholder="Opcional; não inclua dados reais"></label>
               <div class="actions wide"><button type="submit">Salvar lançamento</button><button id="cancel-transaction" type="button" class="secondary">Cancelar</button></div>
+            </form>
+          </div>
+        </section>
+
+        <section data-view="financeiro/documentos" aria-labelledby="documents-title" hidden>
+          <div class="section-heading"><h3 id="documents-title">Documentos financeiros <span id="document-count" class="list-count">0</span></h3><button id="new-finance-document" type="button" aria-controls="document-form-panel" aria-expanded="false">Novo documento</button></div>
+          <p class="section-intro">Associe documentos fictícios às entradas e saídas. O sistema guarda apenas descrições e links HTTPS opcionais; não recebe arquivos nem consulta o banco.</p>
+
+          <section id="document-transaction-panel" class="document-transaction-panel" aria-labelledby="document-transaction-title" hidden>
+            <div class="section-heading document-transaction-heading"><h4 id="document-transaction-title" tabindex="-1">Documentos do lançamento</h4><button id="document-transaction-back" type="button" class="secondary">Voltar ao extrato</button></div>
+            <p id="document-transaction-summary" class="document-transaction-summary"></p>
+            <p id="document-transaction-status" class="document-transaction-status" role="status" aria-live="polite"></p>
+            <div id="document-transaction-links" class="document-transaction-links" aria-label="Documentos vinculados a este lançamento"></div>
+            <div class="actions document-transaction-actions"><button id="document-new-for-transaction" type="button">Novo documento para este lançamento</button><button id="document-review-toggle" type="button" class="secondary">Conferir com extrato</button></div>
+            <div class="document-link-controls">
+              <label>Documento já cadastrado<select id="document-link-existing"><option value="">Selecione um documento</option></select></label>
+              <label>Função do documento<select id="document-link-role"><option value="origem">Origem da cobrança ou receita</option><option value="quitacao">Comprovante de pagamento</option><option value="autorizacao">Autorização ou contrato</option><option value="justificativa">Justificativa</option></select></label>
+              <button id="document-link-button" type="button" class="secondary">Vincular documento</button>
+            </div>
+          </section>
+
+          <div class="document-list-heading"><h4>Relação de documentos</h4><label>Mostrar<select id="document-filter"><option value="">Todos</option><option value="unlinked">Aguardando movimentação</option></select></label></div>
+          <div id="document-list" class="record-list document-list"></div>
+          <div id="document-form-panel" class="directory-form-panel" role="region" aria-labelledby="document-form-title" hidden>
+            <h4 id="document-form-title">Novo documento</h4>
+            <form id="document-form" class="form-grid compact-form">
+              <input id="document-id" type="hidden">
+              <label>Tipo *<select id="document-kind" required><option>Fatura</option><option>Nota fiscal</option><option>Recibo</option><option>Comprovante de pagamento</option><option>Comprovante de receita</option><option>Contrato</option><option>Autorização</option><option>Justificativa</option><option>Outro</option></select></label>
+              <label>Data do documento *<input id="document-date" type="date" required></label>
+              <label class="wide">Descrição *<input id="document-title" maxlength="120" required placeholder="Ex.: fatura fictícia de água"></label>
+              <label>Valor indicado (R$)<input id="document-amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Opcional"></label>
+              <label class="wide">Link HTTPS do documento fictício<input id="document-url" type="url" maxlength="2048" inputmode="url" placeholder="https://..."></label>
+              <label class="wide">Observações<textarea id="document-notes" maxlength="300" placeholder="Opcional; não inclua dados reais"></textarea></label>
+              <div class="actions wide"><button type="submit">Salvar documento</button><button id="cancel-finance-document" type="button" class="secondary">Cancelar</button></div>
             </form>
           </div>
         </section>
@@ -267,24 +303,24 @@
           <h3 id="backup-title">Cópia de segurança</h3>
           <p class="section-intro">Os registros ficam neste navegador. Exporte uma cópia após cada atualização e guarde o arquivo em local privado.</p>
           <div class="backup-explainer"><strong>Dados fictícios para demonstração</strong><p>Os exemplos são incluídos automaticamente uma vez, mesmo em navegadores já usados, sem substituir registros existentes. Se algum exemplo for excluído, o botão abaixo pode repô-lo.</p><button id="add-demo-data" type="button" class="secondary">Adicionar dados fictícios</button></div>
-          <div class="backup-explainer"><strong>Antes de importar</strong><p>Uma cópia da versão 4 substitui atividades, cadastros, lançamentos e categorias deste aparelho. A versão 3 substitui os lançamentos e mantém as categorias atuais; versões 1 e 2 mantêm todo o financeiro. O sistema pedirá confirmação antes da troca.</p></div>
+          <div class="backup-explainer"><strong>Antes de importar</strong><p>Uma cópia da versão 5 substitui atividades, cadastros, lançamentos, categorias e documentos deste aparelho. Cópias anteriores também podem ser importadas, mas não contêm os vínculos documentais desta versão. O sistema pedirá confirmação antes da troca.</p></div>
           <div class="actions"><button id="export" type="button">Exportar JSON</button><button id="import-trigger" type="button" class="secondary">Importar JSON</button><input id="import-file" type="file" accept="application/json,.json" aria-label="Selecionar cópia de segurança JSON" hidden></div>
         </section>
 
         <section data-view="configuracoes/sobre" aria-labelledby="about-title" hidden>
           <h3 id="about-title">Sobre esta versão</h3>
-          <p>Este protótipo acadêmico organiza atividades do plano de trabalho, pessoas fictícias, empresas de exemplo e um extrato financeiro demonstrativo. Uma primeira visita mostra registros fictícios que podem ser editados ou excluídos. Foi criado para demonstração no celular, sem custo de licença.</p>
-          <p>Qualquer pessoa com o link pode abrir a página, mas os registros não são compartilhados entre aparelhos. O sistema não substitui a contabilidade, a folha de pagamento, o eSocial nem os documentos oficiais do condomínio.</p>
+          <p>Este protótipo acadêmico organiza atividades do plano de trabalho, pessoas fictícias, empresas de exemplo, um extrato demonstrativo e documentos financeiros de exemplo vinculados às movimentações. Foi criado para demonstração no celular, sem custo de licença.</p>
+          <p>Qualquer pessoa com o link pode abrir a página, mas os registros não são compartilhados entre aparelhos. A conferência com o extrato é manual; não há conexão bancária nem armazenamento de arquivos. O sistema não substitui a contabilidade, a folha de pagamento, o eSocial nem os documentos oficiais do condomínio.</p>
         </section>
       </main>
     </div>
   </div>
-  <script src="navigation.js?v=6" defer></script>
+  <script src="navigation.js?v=7" defer></script>
   <script src="ui-feedback.js?v=4" defer></script>
-  <script src="demo-seed.js?v=3" defer></script>
+  <script src="demo-seed.js?v=5" defer></script>
   <script src="directory.js?v=11" defer></script>
-  <script src="finance.js?v=3" defer></script>
-  <script src="app.js?v=13" defer></script>
+  <script src="finance.js?v=4" defer></script>
+  <script src="app.js?v=14" defer></script>
 </body>
 </html>
 

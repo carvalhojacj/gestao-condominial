@@ -20,6 +20,51 @@ async function main() {
     assert.equal(await seedPage.locator('#ledger-count').textContent(), '6');
     assert.match(await seedPage.locator('#ledger-balance').textContent(), /3\.960,00/);
     assert.equal(await seedPage.locator('#ledger-mobile .ledger-mobile-card').count(), 6);
+    if (process.env.PREVIEW_DIR) {
+      fs.mkdirSync(process.env.PREVIEW_DIR, {recursive: true});
+      await seedPage.screenshot({path: path.join(process.env.PREVIEW_DIR, 'extrato-mobile.png'), fullPage: true});
+      await seedPage.setViewportSize({width: 1280, height: 800});
+      await seedPage.screenshot({path: path.join(process.env.PREVIEW_DIR, 'extrato-desktop.png'), fullPage: true});
+      await seedPage.setViewportSize({width: 390, height: 844});
+    }
+    await seedPage.locator('#ledger-doc-filter').selectOption('pending');
+    assert.equal(await seedPage.locator('#ledger-count').textContent(), '3');
+    await seedPage.locator('#ledger-doc-filter').selectOption('');
+    await seedPage.locator('#ledger-mobile .ledger-mobile-card').filter({hasText: 'Conta de água'}).getByRole('button', {name: 'Documentos'}).click();
+    assert.equal(await seedPage.locator('#page-title').textContent(), 'Documentos');
+    assert.equal(await seedPage.locator('#document-transaction-links .document-link-row').count(), 2);
+    assert.match(await seedPage.locator('#document-transaction-status').textContent(), /Conferido com extrato fictício/);
+    if (process.env.PREVIEW_DIR) {
+      fs.mkdirSync(process.env.PREVIEW_DIR, {recursive: true});
+      await seedPage.screenshot({path: path.join(process.env.PREVIEW_DIR, 'documentos-mobile.png'), fullPage: true});
+      await seedPage.setViewportSize({width: 1280, height: 800});
+      await seedPage.screenshot({path: path.join(process.env.PREVIEW_DIR, 'documentos-desktop.png'), fullPage: true});
+      await seedPage.setViewportSize({width: 390, height: 844});
+    }
+    await seedPage.locator('#document-review-toggle').click();
+    assert.match(await seedPage.locator('#document-transaction-status').textContent(), /Extrato não conferido/);
+    await seedPage.locator('#document-review-toggle').click();
+    await seedPage.locator('#document-filter').selectOption('unlinked');
+    assert.equal(await seedPage.locator('#document-list .document-row').count(), 1);
+    await seedPage.locator('#document-filter').selectOption('');
+    assert.equal(await seedPage.locator('#document-list .document-row').count(), 7);
+    await seedPage.locator('#new-finance-document').click();
+    await seedPage.locator('#document-kind').selectOption('Autorização');
+    await seedPage.locator('#document-date').fill('2026-11-02');
+    await seedPage.locator('#document-title').fill('Autorização fictícia para consumo');
+    await seedPage.getByRole('button', {name: 'Salvar documento'}).click();
+    await seedPage.locator('#document-link-existing').selectOption({label: 'Autorização fictícia para consumo · Autorização'});
+    await seedPage.locator('#document-link-role').selectOption('autorizacao');
+    await seedPage.locator('#document-link-button').click();
+    await seedPage.locator('#document-transaction-back').click();
+    await seedPage.locator('#ledger-mobile .ledger-mobile-card').filter({hasText: 'Energia das áreas comuns'}).getByRole('button', {name: 'Documentos'}).click();
+    await seedPage.locator('#document-link-existing').selectOption({label: 'Autorização fictícia para consumo · Autorização'});
+    await seedPage.locator('#document-link-role').selectOption('autorizacao');
+    await seedPage.locator('#document-link-button').click();
+    assert.match(await seedPage.locator('#document-list .document-row').filter({hasText: 'Autorização fictícia para consumo'}).textContent(), /2 movimentações/);
+    await seedPage.locator('#document-transaction-links .document-link-row').filter({hasText: 'Autorização fictícia para consumo'}).getByRole('button', {name: 'Desvincular'}).click();
+    assert.match(await seedPage.locator('#document-list .document-row').filter({hasText: 'Autorização fictícia para consumo'}).textContent(), /1 movimentação/);
+    await seedPage.locator('#document-transaction-back').click();
     assert.equal(await seedPage.locator('#receipt-items a').count(), 1);
     assert.match(await seedPage.locator('#receipt-items a').getAttribute('href'), /comprovante-demonstrativo\.html$/);
     await seedPage.reload();
@@ -55,6 +100,7 @@ async function main() {
       localStorage.setItem('gestao-condominial-demo-directory-v1', JSON.stringify({residents: [], employees: [], vendors: []}));
       localStorage.setItem('gestao-condominial-demo-seed-v1', '1');
       localStorage.setItem('gestao-condominial-demo-finance-seed-v1', '1');
+      localStorage.setItem('gestao-condominial-demo-documents-seed-v1', '1');
       localStorage.setItem('gestao-condominial-demo-finance-v1', '[]');
       sessionStorage.setItem('smoke-initialized', '1');
     });
@@ -76,7 +122,7 @@ async function main() {
     assert.equal(await page.locator('#side-nav a').count(), 3);
     assert.equal(await page.locator('#page-title').textContent(), 'Moradores');
     assert.equal(await page.locator('#resident-form-panel').isHidden(), true);
-    assert.equal(await page.locator('#residents-list').evaluate(list => list.compareDocumentPosition(document.getElementById('resident-form-panel')) & Node.DOCUMENT_POSITION_FOLLOWING), Node.DOCUMENT_POSITION_FOLLOWING);
+    assert.equal(await page.locator('#residents-list').evaluate(list => Boolean(list.compareDocumentPosition(document.getElementById('resident-form-panel')) & Node.DOCUMENT_POSITION_FOLLOWING)), true);
     if (process.env.PREVIEW_DIR) await page.screenshot({path: path.join(process.env.PREVIEW_DIR, 'moradores-mobile.png'), fullPage: true});
     await page.getByRole('button', {name: 'Novo morador'}).click();
     assert.equal(await page.locator('#resident-form-panel').isVisible(), true);
@@ -164,7 +210,7 @@ async function main() {
     assert.equal(await page.locator('#activity-list-count').textContent(), '1');
 
     await page.locator('#items .record').getByRole('button', {name: 'Editar'}).click();
-    assert.equal(await page.locator('#page-title').textContent(), 'Editar atividade');
+    assert.equal(await page.locator('#form-title').textContent(), 'Editar atividade');
     await page.locator('#actual').fill('120.25');
     await page.getByRole('button', {name: 'Atualizar atividade'}).click();
     assert.match(await page.locator('#difference').textContent(), /20,25/);
@@ -186,6 +232,7 @@ async function main() {
     await page.locator('#transaction-type').selectOption('Entrada');
     await page.locator('#transaction-description').fill('Cota fictícia');
     await page.locator('#transaction-amount').fill('150.25');
+    await page.locator('#transaction-reference').fill('EXEMPLO-TESTE-001');
     await page.getByRole('button', {name: 'Salvar lançamento'}).click();
     assert.equal(await page.locator('#ledger-count').textContent(), '1');
     assert.match(await page.locator('#ledger-balance').textContent(), /150,25/);
@@ -195,7 +242,33 @@ async function main() {
     await page.locator('#transaction-subcategory').selectOption('Água');
     await page.locator('#transaction-amount').fill('50.25');
     await page.getByRole('button', {name: 'Atualizar lançamento'}).click();
-    assert.match(await page.locator('#ledger-balance').textContent(), /-50,25/);
+    assert.match(await page.locator('#ledger-balance').textContent(), /-R\$\s*50,25/);
+    await page.locator('#ledger-mobile .ledger-mobile-card').getByRole('button', {name: 'Documentos'}).click();
+    assert.match(await page.locator('#document-transaction-status').textContent(), /Sem documentos/);
+    assert.match(await page.locator('#document-transaction-summary').textContent(), /EXEMPLO-TESTE-001/);
+    await page.locator('#document-new-for-transaction').click();
+    await page.locator('#document-kind').selectOption('Fatura');
+    await page.locator('#document-date').fill('2026-11-07');
+    await page.locator('#document-title').fill('Fatura fictícia de água');
+    await page.locator('#document-amount').fill('50.25');
+    await page.getByRole('button', {name: 'Salvar documento'}).click();
+    assert.equal(await page.locator('#document-transaction-links .document-link-row').count(), 1);
+    assert.match(await page.locator('#document-transaction-status').textContent(), /Documentação parcial/);
+    await page.locator('#document-new-for-transaction').click();
+    await page.locator('#document-kind').selectOption('Comprovante de pagamento');
+    await page.locator('#document-date').fill('2026-11-08');
+    await page.locator('#document-title').fill('Pagamento fictício da água');
+    await page.getByRole('button', {name: 'Salvar documento'}).click();
+    assert.equal(await page.locator('#document-transaction-links .document-link-row').count(), 2);
+    assert.match(await page.locator('#document-transaction-status').textContent(), /Documentos para revisar/);
+    await page.locator('#document-review-toggle').click();
+    assert.match(await page.locator('#document-transaction-status').textContent(), /Conferido com extrato fictício/);
+    await page.reload();
+    assert.equal(await page.locator('#document-list .document-row').count(), 2);
+    await page.locator('#side-nav a[href="#financeiro/extrato"]').click();
+    await page.locator('#ledger-doc-filter').selectOption('checked');
+    assert.equal(await page.locator('#ledger-count').textContent(), '1');
+    await page.locator('#ledger-doc-filter').selectOption('');
     await page.locator('#side-nav a[href="#financeiro/categorias"]').click();
     assert.match(await page.locator('#ledger-category-summary').textContent(), /Consumo/);
     await page.locator('#ledger-category-summary .category-card').filter({hasText: 'Consumo'}).getByRole('button', {name: 'Editar categoria'}).click();
@@ -228,7 +301,7 @@ async function main() {
     assert.match(await page.locator('#message').textContent(), /download iniciado/i);
     const download = await downloadPromise;
     const backup = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-    assert.equal(backup.version, 4);
+    assert.equal(backup.version, 5);
     assert.equal(backup.activities[0].actual, '120.25');
     assert.equal(backup.activities[0].supplier, 'Empresa Exemplo');
     assert.equal(backup.directory.residents.length, 1);
@@ -237,6 +310,10 @@ async function main() {
     assert.equal(backup.finance.records.length, 1);
     assert.equal(backup.finance.records[0].type, 'Saída');
     assert.equal(backup.finance.records[0].category, 'Utilidades');
+    assert.equal(backup.finance.records[0].bankReference, 'EXEMPLO-TESTE-001');
+    assert.ok(backup.finance.records[0].bankCheckedAt);
+    assert.equal(backup.finance.documents.length, 2);
+    assert.equal(backup.finance.links.length, 2);
     assert.deepEqual(backup.finance.categories.Saída.Utilidades, ['Água', 'Energia', 'Gás']);
 
     await page.locator('.top-nav [data-area="plano"]').click();
@@ -247,7 +324,9 @@ async function main() {
     assert.equal(await page.locator('#total').textContent(), '1');
     assert.equal(await page.locator('#residents-count').textContent(), '1');
     await page.locator('.top-nav [data-area="financeiro"]').click();
-    assert.match(await page.locator('#ledger-balance').textContent(), /-50,25/);
+    assert.match(await page.locator('#ledger-balance').textContent(), /-R\$\s*50,25/);
+    await page.locator('#side-nav a[href="#financeiro/documentos"]').click();
+    assert.equal(await page.locator('#document-list .document-row').count(), 2);
     await page.locator('.top-nav [data-area="configuracoes"]').click();
 
     const oldBackup = {version: 1, activities: JSON.parse(JSON.stringify(backup.activities))};
@@ -255,6 +334,7 @@ async function main() {
     delete oldBackup.activities[0].supplier;
     await page.locator('#import-file').setInputFiles({name: 'backup-antigo.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(oldBackup))});
     await page.locator('.top-nav [data-area="plano"]').click();
+    if (await page.locator('#activity-filter-panel').getAttribute('open') === null) await page.locator('#activity-filter-panel summary').click();
     await page.locator('#nature-filter').selectOption('');
     await page.locator('#items .record').getByRole('button', {name: 'Editar'}).click();
     assert.equal(await page.locator('#expenseNature').inputValue(), '');
@@ -263,6 +343,19 @@ async function main() {
     assert.equal(await page.locator('#residents-count').textContent(), '1');
     await page.locator('.top-nav [data-area="financeiro"]').click();
     assert.equal(await page.locator('#ledger-count').textContent(), '1');
+    await page.locator('#side-nav a[href="#financeiro/documentos"]').click();
+    assert.equal(await page.locator('#document-list .document-row').count(), 2);
+
+    const version4 = JSON.parse(JSON.stringify(backup));
+    version4.version = 4;
+    delete version4.finance.documents;
+    delete version4.finance.links;
+    await page.locator('.top-nav [data-area="configuracoes"]').click();
+    await page.locator('#import-file').setInputFiles({name: 'backup-v4.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(version4))});
+    await page.locator('.top-nav [data-area="financeiro"]').click();
+    assert.equal(await page.locator('#ledger-count').textContent(), '1');
+    await page.locator('#side-nav a[href="#financeiro/documentos"]').click();
+    assert.equal(await page.locator('#document-list .document-row').count(), 0);
 
     if (process.env.PREVIEW_DIR) {
       await page.setViewportSize({width: 1280, height: 800});
@@ -285,7 +378,8 @@ async function main() {
     assert.equal(await page.locator('#total').textContent(), '6');
     assert.equal(await page.locator('#ledger-count').textContent(), '7');
     assert.deepEqual(errors, []);
-    console.log('OK: exemplos, navegação, cadastros, plano, extrato, categorias e backups v1/v4 em tela de celular');
+    await context.close();
+    console.log('OK: exemplos, navegação, cadastros, plano, extrato, documentos, categorias e backups v1/v4/v5 em tela de celular');
   } finally { await browser.close(); }
 }
 

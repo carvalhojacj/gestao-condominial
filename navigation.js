@@ -25,6 +25,7 @@ const NAV_AREAS = {
     label: 'Financeiro',
     views: [
       {route: 'financeiro/extrato', label: 'Extrato', description: 'Consulte entradas, saídas e saldos do controle demonstrativo.'},
+      {route: 'financeiro/documentos', label: 'Documentos', description: 'Organize os documentos fictícios e acompanhe os vínculos com o extrato.'},
       {route: 'financeiro/categorias', label: 'Categorias', description: 'Consulte os totais e organize categorias e subcategorias.'},
       {route: 'financeiro/comprovantes', label: 'Comprovantes', description: 'Localize os links associados às atividades.'}
     ]
