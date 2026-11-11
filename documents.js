@@ -51,6 +51,8 @@
   const counts = {acervo: 'archive-count', assembleias: 'meetings-count', comunicados: 'notices-count', ocorrencias: 'incidents-count', prazos: 'deadlines-count'};
   let items = [];
   let storageCorrupt = false;
+  let previewState = null;
+  let previewReturnFocus = null;
 
   function clean(value, label, max, required = false) {
     if (typeof value !== 'string') throw new Error(`${label}: texto inválido.`);
@@ -134,23 +136,27 @@
   }
   function row(item, finance = false) {
     const line = document.createElement('article'); line.className = 'documental-row';
-    const main = document.createElement('div'); main.className = 'documental-main';
-    const heading = document.createElement('h4'); heading.textContent = item.title;
-    const meta = document.createElement('p'); meta.className = 'document-row-meta';
+    const main = document.createElement('button'); main.type = 'button'; main.className = 'documental-open';
+    main.setAttribute('aria-label', `Abrir prévia de ${item.title}`);
+    const heading = document.createElement('strong'); heading.className = 'documental-title'; heading.textContent = item.title;
+    const meta = document.createElement('span'); meta.className = 'document-row-meta';
     meta.textContent = `${item.subtype || item.kind || 'Financeiro'} · ${formattedDate(item.date || item.dueDate)}${item.status ? ` · ${item.status}` : ''}${item.unit ? ` · Unidade ${item.unit}` : ''}`;
     if (item.kind === 'assembleias') meta.textContent += item.attendanceConfirmed ? ` · ${item.participants.split('\n').filter(Boolean).length} presença(s) informada(s)` : ' · Presenças a confirmar';
-    main.append(heading, meta);
+    const hint = document.createElement('span'); hint.className = 'documental-open-hint'; hint.textContent = 'Ver documento →';
+    main.append(heading, meta, hint);
+    main.addEventListener('click', () => openPreview(item, finance, main));
     const actions = document.createElement('div'); actions.className = 'actions';
     if (finance) {
       const link = document.createElement('a'); link.href = '#financeiro/documentos'; link.className = 'button-link secondary'; link.textContent = 'Abrir no Financeiro'; actions.append(link);
     } else {
       actions.append(button('Editar', edit, item));
-      if (item.kind === 'assembleias') {
-        actions.append(button('Convocação', meetingNotice, item), button('Protocolo de entrega', deliveryProtocol, item), button('Lista de presença', attendance, item), button('Minuta da ata', printItem, item));
-      } else actions.append(button('Imprimir', printItem, item));
       actions.append(button('Excluir', remove, item));
     }
-    line.append(main, actions); return line;
+    line.append(main, actions);
+    line.addEventListener('click', event => {
+      if (event.target instanceof Element && !event.target.closest('button, a')) openPreview(item, finance, main);
+    });
+    return line;
   }
   function renderKind(kind) {
     const list = $(lists[kind]); list.replaceChildren();
@@ -302,36 +308,26 @@
     message(save() ? 'Registro excluído.' : 'Registro excluído apenas nesta sessão.', 'notice');
   }
   function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); }
-  function printPage(title, html) {
-    const popup = window.open('', '_blank', 'width=900,height=700');
-    if (!popup) { message('Permita a abertura da janela para imprimir.', 'notice'); return; }
-    popup.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(title)} · Exemplo fictício</title><style>body{font:16px/1.5 Arial,sans-serif;max-width:760px;margin:40px auto;color:#142938}h1{font-size:24px}h2{font-size:18px;margin-top:26px}p,li{white-space:pre-wrap}table{width:100%;border-collapse:collapse}td,th{border:1px solid #888;padding:10px;text-align:left}.demo{color:#9b3434;font-weight:bold}footer{margin-top:40px;color:#667}@media print{body{margin:18mm}.no-print{display:none}}</style></head><body><p class="demo">EXEMPLO FICTÍCIO · NÃO É DOCUMENTO OFICIAL</p>${html}<footer>Revise as informações e providencie assinaturas e formalidades aplicáveis.</footer><p class="no-print"><button onclick="window.print()">Imprimir ou salvar como PDF</button></p></body></html>`);
-    popup.document.close();
+  function logoMarkup() {
+    return '<svg class="letterhead-logo" viewBox="0 0 80 80" role="img" aria-label="Logomarca demonstrativa SQS 110 F" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="74" height="74" rx="3" fill="#f8f4e9" stroke="#876a3d" stroke-width="2"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="#b79a64" stroke-width="1"/><path d="M18 31h44M23 27l17-11 17 11M27 35v18m13-18v18m13-18v18M20 55h40" fill="none" stroke="#17384c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text x="40" y="67" text-anchor="middle" font-family="Georgia,serif" font-size="8" font-weight="700" fill="#17384c">SQS 110 F</text></svg>';
   }
-  function printItem(item) {
-    const value = name => escapeHtml(item[name]);
-    let content = `<h1>${value('title')}</h1><p>${value('subtype')} · ${formattedDate(item.date || item.dueDate)}</p>`;
-    if (item.kind === 'assembleias') {
-      const topics = item.agenda.split('\n').map(line => line.trim()).filter(Boolean);
-      const decisions = topics.map((topic, index) => `<h2>${index + 1}. ${escapeHtml(topic)}</h2><p>${escapeHtml(item.resolutions?.[index]) || 'Discussão e deliberação pendentes de registro.'}</p>`).join('');
-      const oldNote = item.deliberations && !item.resolutions?.some(Boolean) ? `<h2>Anotação anterior sem vínculo à pauta</h2><p>${value('deliberations')}</p>` : '';
-      content += `<p><strong>Horário:</strong> ${value('time')} &nbsp; <strong>Local:</strong> ${value('location')}</p><p><strong>Presidente:</strong> ${value('chair')} &nbsp; <strong>Secretário(a):</strong> ${value('secretary')}</p><h2>Presenças</h2><p>${item.attendanceConfirmed ? value('participants') : 'Presenças ainda não confirmadas para esta minuta.'}</p><h2>Itens da pauta e deliberações a revisar</h2>${decisions}${oldNote}<p>Assinatura do presidente: __________________________________</p><p>Assinatura do secretário(a): ________________________________</p>`;
-    } else if (item.kind === 'comunicados') content += `<p><strong>Destinatários:</strong> ${value('audience')}</p><p>${value('body')}</p><p><strong>Meio de divulgação informado:</strong> ${value('channel')}</p>`;
-    else if (item.kind === 'ocorrencias') content += `<p><strong>Unidade fictícia:</strong> ${value('unit')}</p><p>${value('body')}</p><p><strong>Regra a conferir:</strong> ${value('rule')}</p><p><strong>Evidência fictícia:</strong> ${value('evidence')}</p><p><strong>Situação:</strong> ${value('status')}</p>`;
-    else content += `<p>${value('body')}</p>${item.dueDate ? `<p><strong>Vencimento informado:</strong> ${formattedDate(item.dueDate)}</p>` : ''}`;
-    printPage(item.title, content);
+  function safeDocumentLink(value) {
+    if (!value) return '';
+    try { const url = new URL(value); return url.protocol === 'https:' && url.hostname ? url.href : ''; }
+    catch { return ''; }
   }
-  function meetingNotice(item) {
-    printPage(`Convocação · ${item.title}`, `<h1>Convocação para assembleia ${escapeHtml(item.subtype)}</h1><p><strong>Assunto:</strong> ${escapeHtml(item.title)}</p><p><strong>Data:</strong> ${formattedDate(item.date)} &nbsp; <strong>Horário:</strong> ${escapeHtml(item.time)} &nbsp; <strong>Local:</strong> ${escapeHtml(item.location)}</p><h2>Ordem do dia</h2><p>${escapeHtml(item.agenda)}</p><p>Prazo e forma de convocação: conferir a convenção do condomínio.</p>`);
+  function linkMarkup(value) {
+    const url = safeDocumentLink(value);
+    return url ? `<p class="document-reference"><strong>Arquivo de referência:</strong> <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir link HTTPS fictício</a></p>` : '';
   }
-  function deliveryProtocol(item) {
+  function deliveryProtocolBody(item) {
     const residents = window.demoDirectory.exportData().residents;
     const rows = (residents.length ? residents : [{unit:'_____',name:'______________________________'}])
       .sort((a, b) => a.unit.localeCompare(b.unit, 'pt-BR', {numeric: true}))
       .map(person => `<tr><td>${escapeHtml(person.unit)}</td><td>${escapeHtml(person.name)}</td><td>________________________</td><td>____/____/________</td></tr>`).join('');
-    printPage(`Protocolo de convocação · ${item.title}`, `<h1>Protocolo de entrega da convocação</h1><p>Assembleia ${escapeHtml(item.subtype)} · ${formattedDate(item.date)} · ${escapeHtml(item.title)}</p><table><thead><tr><th>Unidade</th><th>Destinatário previsto</th><th>Assinatura ou forma de entrega</th><th>Data</th></tr></thead><tbody>${rows}</tbody></table><p>Preencha a forma e a data efetivas da entrega. Confira a convenção e as regras aplicáveis.</p>`);
+    return `<h1>Protocolo de entrega da convocação</h1><p>Assembleia ${escapeHtml(item.subtype)} · ${formattedDate(item.date)} · ${escapeHtml(item.title)}</p><table><thead><tr><th>Unidade</th><th>Destinatário previsto</th><th>Assinatura ou forma de entrega</th><th>Data</th></tr></thead><tbody>${rows}</tbody></table><p>Preencha a forma e a data efetivas da entrega. Confira a convenção e as regras aplicáveis.</p>`;
   }
-  function attendance(item) {
+  function attendanceBody(item) {
     const entries = new Set(item.participants.split('\n').map(line => line.trim()).filter(Boolean));
     for (const resident of window.demoDirectory.exportData().residents) entries.add(`${resident.unit} | ${resident.name}`);
     const roster = entries.size ? [...entries].sort((a, b) => a.split('|')[0].trim().localeCompare(b.split('|')[0].trim(), 'pt-BR', {numeric: true})) : ['_____ | ______________________________'];
@@ -339,7 +335,61 @@
       const [unit, name] = line.split('|').map(value => escapeHtml(value.trim()));
       return `<tr><td>${unit}</td><td>${name}</td><td>________________________</td></tr>`;
     }).join('');
-    printPage(`Lista de presença · ${item.title}`, `<h1>Lista preparatória de presença</h1><p>Assembleia ${escapeHtml(item.subtype)} · ${formattedDate(item.date)} · ${escapeHtml(item.time)} · ${escapeHtml(item.location)}</p><table><thead><tr><th>Unidade</th><th>Participante previsto</th><th>Assinatura presencial</th></tr></thead><tbody>${rows}</tbody></table><p>Confirme presencialmente quem compareceu e a representação de cada unidade.</p>`);
+    return `<h1>Lista preparatória de presença</h1><p>Assembleia ${escapeHtml(item.subtype)} · ${formattedDate(item.date)} · ${escapeHtml(item.time)} · ${escapeHtml(item.location)}</p><table><thead><tr><th>Unidade</th><th>Participante previsto</th><th>Assinatura presencial</th></tr></thead><tbody>${rows}</tbody></table><p>Confirme presencialmente quem compareceu e a representação de cada unidade.</p>`;
+  }
+  function documentBody(item, variant, finance) {
+    const value = name => escapeHtml(item[name]);
+    const heading = `<p class="document-type">${finance ? 'Referência financeira' : value('subtype')}</p>`;
+    if (finance) {
+      const amount = item.amount ? new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'}).format(Number(item.amount)) : '';
+      return `${heading}<h1>${value('title')}</h1><p class="document-date">${formattedDate(item.date)}</p><div class="document-rule"></div><p><strong>Tipo:</strong> ${value('kind')}</p>${amount ? `<p><strong>Valor indicado:</strong> ${escapeHtml(amount)}</p>` : ''}${item.notes ? `<p>${value('notes')}</p>` : ''}${linkMarkup(item.url)}<p class="document-note">Referência cadastrada no Financeiro. A prévia não representa o arquivo original.</p>`;
+    }
+    if (item.kind === 'assembleias') {
+      if (variant === 'convocacao') return `${heading}<h1>Convocação de assembleia</h1><p class="document-date">${formattedDate(item.date)}</p><div class="document-rule"></div><p><strong>Assunto:</strong> ${value('title')}</p><p><strong>Horário:</strong> ${value('time')} &nbsp; <strong>Local:</strong> ${value('location')}</p><h2>Ordem do dia</h2><p>${value('agenda')}</p><p class="document-note">Prazo e forma de convocação: conferir a convenção do condomínio.</p>`;
+      if (variant === 'protocolo') return `${heading}${deliveryProtocolBody(item)}`;
+      if (variant === 'presenca') return `${heading}${attendanceBody(item)}`;
+      const topics = item.agenda.split('\n').map(line => line.trim()).filter(Boolean);
+      const decisions = topics.map((topic, index) => `<h2>${index + 1}. ${escapeHtml(topic)}</h2><p>${escapeHtml(item.resolutions?.[index]) || 'Discussão e deliberação pendentes de registro.'}</p>`).join('');
+      const oldNote = item.deliberations && !item.resolutions?.some(Boolean) ? `<h2>Anotação anterior sem vínculo à pauta</h2><p>${value('deliberations')}</p>` : '';
+      return `${heading}<h1>Minuta de ata</h1><p class="document-subtitle">${value('title')}</p><p class="document-date">${formattedDate(item.date)} · ${value('time')} · ${value('location')}</p><div class="document-rule"></div><p><strong>Presidente:</strong> ${value('chair') || 'A definir'} &nbsp; <strong>Secretário(a):</strong> ${value('secretary') || 'A definir'}</p><h2>Presenças</h2><p>${item.attendanceConfirmed ? value('participants') : 'Presenças ainda não confirmadas para esta minuta.'}</p><h2>Itens da pauta e deliberações a revisar</h2>${decisions}${oldNote}<div class="document-signatures"><p>Assinatura do presidente: __________________________________</p><p>Assinatura do secretário(a): ________________________________</p></div>`;
+    }
+    if (item.kind === 'comunicados') return `${heading}<h1>${value('title')}</h1><p class="document-date">${formattedDate(item.date)}</p><div class="document-rule"></div><p><strong>Destinatários:</strong> ${value('audience')}</p><p>${value('body')}</p><div class="document-signatures"><p><strong>Divulgação informada:</strong> ${value('channel') || 'Não informada'}</p><p><strong>Situação:</strong> ${value('status')}</p></div>`;
+    if (item.kind === 'ocorrencias') return `${heading}<h1>${value('title')}</h1><p class="document-date">${formattedDate(item.date)}</p><div class="document-rule"></div><p><strong>Unidade fictícia:</strong> ${value('unit') || 'Não informada'}</p><h2>Registro do fato</h2><p>${value('body')}</p><p><strong>Regra a conferir:</strong> ${value('rule') || 'Não informada'}</p><p><strong>Evidência fictícia:</strong> ${value('evidence') || 'Não informada'}</p><p><strong>Situação:</strong> ${value('status')}</p><p class="document-note">Registro demonstrativo. Uma eventual penalidade depende de análise específica.</p>`;
+    if (item.kind === 'prazos') return `${heading}<h1>${value('title')}</h1><p class="document-date">Vencimento informado: ${formattedDate(item.dueDate)}</p><div class="document-rule"></div><p>${value('body') || 'Nenhuma providência descrita.'}</p><p class="document-note">Confira a vigência no documento original e as regras aplicáveis.</p>`;
+    return `${heading}<h1>${value('title')}</h1><p class="document-date">${formattedDate(item.date)}</p><div class="document-rule"></div><p>${value('body') || 'Nenhuma descrição cadastrada.'}</p>${linkMarkup(item.url)}`;
+  }
+  function documentMarkup(item, variant = 'documento', finance = false) {
+    return `<header class="document-letterhead">${logoMarkup()}<div class="document-letterhead-name"><strong>Condomínio SQS 110 F</strong><span>Administração condominial · Identidade demonstrativa</span></div></header><div class="document-body">${documentBody(item, variant, finance)}</div><footer class="document-footnote">Exemplo fictício para demonstração acadêmica · Não é documento oficial.</footer>`;
+  }
+  function renderPreview() {
+    if (!previewState) return;
+    $('document-preview-paper').innerHTML = documentMarkup(previewState.item, previewState.variant, previewState.finance);
+    $('document-preview-variants').querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.variant === previewState.variant)));
+  }
+  function openPreview(item, finance, opener) {
+    const dialog = $('document-preview');
+    if (typeof dialog.showModal !== 'function') { message('A prévia não está disponível neste navegador.', 'notice'); return; }
+    previewReturnFocus = opener;
+    previewState = {item, finance, variant: 'documento'};
+    $('document-preview-heading').textContent = item.title;
+    const variants = $('document-preview-variants'); variants.replaceChildren(); variants.hidden = item.kind !== 'assembleias' || finance;
+    if (!variants.hidden) {
+      for (const [variant, label] of [['documento','Minuta da ata'],['convocacao','Convocação'],['protocolo','Protocolo de entrega'],['presenca','Lista de presença']]) {
+        const control = document.createElement('button'); control.type = 'button'; control.className = 'secondary'; control.dataset.variant = variant; control.textContent = label;
+        control.addEventListener('click', () => { previewState.variant = variant; renderPreview(); }); variants.append(control);
+      }
+    }
+    $('document-preview-finance').hidden = !finance;
+    renderPreview(); dialog.showModal(); $('document-preview-close').focus();
+  }
+  function printPreview() {
+    if (!previewState) return;
+    const popup = window.open('', '_blank', 'width=900,height=700');
+    if (!popup) { message('Permita a abertura da janela para imprimir.', 'notice'); return; }
+    const {item, variant, finance} = previewState;
+    const printStyles = 'body{margin:0;background:#f1ede5;color:#24313a}.document-paper{max-width:800px;margin:25px auto;padding:42px 50px;background:#fffdf8;box-shadow:0 8px 35px #0002;font:16px/1.65 Georgia,serif}.document-letterhead{display:flex;align-items:center;gap:18px;padding-bottom:20px;border-bottom:2px solid #876a3d}.letterhead-logo{width:76px;height:76px;flex:none}.document-letterhead-name strong{display:block;color:#17384c;font-size:20px;font-variant:small-caps;letter-spacing:.04em}.document-letterhead-name span{display:block;color:#665a48;font:12px/1.4 Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}.document-body{padding-top:30px}.document-body h1{margin:4px 0 10px;color:#17384c;font-size:27px;line-height:1.25;text-align:center}.document-body h2{margin:26px 0 8px;color:#17384c;font-size:18px}.document-body p{white-space:pre-wrap;overflow-wrap:anywhere}.document-type{text-align:center;text-transform:uppercase;letter-spacing:.15em;color:#876a3d;font:700 11px Arial,sans-serif}.document-date,.document-subtitle{text-align:center}.document-rule{width:90px;margin:24px auto;border-top:1px solid #b79a64}.document-note{color:#665a48;font-size:14px}.document-signatures{margin-top:40px}.document-footnote{margin-top:42px;padding-top:12px;border-top:1px solid #b79a64;color:#665a48;text-align:center;font:11px Arial,sans-serif}table{width:100%;border-collapse:collapse;font:13px Arial,sans-serif}td,th{padding:9px;border:1px solid #9f9a8e;text-align:left;overflow-wrap:anywhere}a{color:#17384c}.print-action{display:block;margin:0 auto 25px;padding:10px 18px}@media print{body{background:#fff}.document-paper{margin:0;max-width:none;padding:0;box-shadow:none}.print-action{display:none}}';
+    popup.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(item.title)} · Exemplo fictício</title><style>${printStyles}</style></head><body><div class="document-paper">${documentMarkup(item, variant, finance)}</div><button class="print-action" onclick="window.print()">Imprimir ou salvar como PDF</button></body></html>`);
+    popup.document.close();
   }
   function addExamples() {
     if (storageCorrupt) throw new Error('Os documentos salvos não puderam ser lidos.');
@@ -357,6 +407,11 @@
   function importData(validated) { items = validateData(validated); storageCorrupt = false; render(); return save(); }
   window.documental = {addExamples, exportData: () => items.map(item => ({...item})), validateData, importData};
   document.querySelectorAll('[data-doc-new]').forEach(element => element.addEventListener('click', () => openForm(element.dataset.docNew)));
+  $('document-preview-close').addEventListener('click', () => $('document-preview').close());
+  $('document-preview-print').addEventListener('click', printPreview);
+  $('document-preview-finance').addEventListener('click', () => $('document-preview').close());
+  $('document-preview').addEventListener('close', () => { previewState = null; if (previewReturnFocus?.isConnected) previewReturnFocus.focus(); previewReturnFocus = null; });
+  $('document-preview').addEventListener('click', event => { if (event.target === $('document-preview')) $('document-preview').close(); });
   $('archive-search').addEventListener('input', () => renderKind('acervo'));
   $('archive-filter').addEventListener('change', () => renderKind('acervo'));
   window.addEventListener('hashchange', () => { if (location.hash === '#documentos/acervo') renderKind('acervo'); });

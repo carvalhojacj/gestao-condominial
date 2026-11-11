@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#153d60">
   <title>Gestão condominial</title>
-  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="styles.css?v=18">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -347,17 +347,31 @@
         <section data-view="configuracoes/sobre" aria-labelledby="about-title" hidden>
           <h3 id="about-title">Sobre esta versão</h3>
           <p>Este protótipo acadêmico organiza atividades do plano de trabalho, pessoas fictícias, empresas de exemplo, um extrato demonstrativo e documentos financeiros e administrativos fictícios. Foi criado para demonstração no celular, sem custo de licença.</p>
-          <p>Qualquer pessoa com o link pode abrir a página, mas os registros não são compartilhados entre aparelhos. A conferência com o extrato é manual; não há conexão bancária nem armazenamento de arquivos. O sistema não substitui a contabilidade, a folha de pagamento, o eSocial nem os documentos oficiais do condomínio.</p>
+          <p>Qualquer pessoa com o link pode abrir a página, mas os registros não são compartilhados entre aparelhos. A conferência com o extrato é manual; não há conexão bancária nem armazenamento de arquivos. A logomarca dos documentos é demonstrativa. O sistema não substitui a contabilidade, a folha de pagamento, o eSocial nem os documentos oficiais do condomínio.</p>
         </section>
       </main>
     </div>
   </div>
+  <dialog id="document-preview" class="document-preview" aria-labelledby="document-preview-heading">
+    <div class="document-preview-shell">
+      <div class="document-preview-toolbar">
+        <div><p class="section-kicker">PRÉVIA DO DOCUMENTO</p><h2 id="document-preview-heading" tabindex="-1">Documento</h2></div>
+        <button id="document-preview-close" type="button" class="secondary" aria-label="Fechar prévia">Fechar</button>
+      </div>
+      <div id="document-preview-variants" class="document-preview-variants" role="group" aria-label="Versões do documento"></div>
+      <div id="document-preview-paper" class="document-paper"></div>
+      <div class="document-preview-footer">
+        <p>Prévia demonstrativa. Confira o conteúdo antes de imprimir ou salvar em PDF.</p>
+        <div class="actions"><a id="document-preview-finance" class="button-link secondary" href="#financeiro/documentos" hidden>Abrir no Financeiro</a><button id="document-preview-print" type="button">Imprimir ou salvar PDF</button></div>
+      </div>
+    </div>
+  </dialog>
   <script src="navigation.js?v=8" defer></script>
   <script src="ui-feedback.js?v=4" defer></script>
   <script src="demo-seed.js?v=5" defer></script>
   <script src="directory.js?v=11" defer></script>
   <script src="finance.js?v=4" defer></script>
-  <script src="documents.js?v=3" defer></script>
+  <script src="documents.js?v=4" defer></script>
   <script src="app.js?v=15" defer></script>
 </body>
 </html>

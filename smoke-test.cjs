@@ -28,6 +28,12 @@ async function main() {
     await seedPage.locator('#assembleias-form-panel .meeting-person').first().locator('input').check();
     await seedPage.getByRole('button', {name: 'Salvar assembleia'}).click();
     assert.match(await seedPage.locator('#meetings-list .documental-row').textContent(), /1 presença\(s\) informada\(s\)/);
+    await seedPage.locator('#meetings-list .documental-open').click();
+    assert.equal(await seedPage.locator('#document-preview').isVisible(), true);
+    assert.match(await seedPage.locator('#document-preview-paper').textContent(), /Minuta de ata/);
+    await seedPage.locator('#document-preview-variants').getByRole('button', {name: 'Convocação'}).click();
+    assert.match(await seedPage.locator('#document-preview-paper').textContent(), /Convocação de assembleia/);
+    await seedPage.getByRole('button', {name: 'Fechar prévia'}).click();
     await seedPage.locator('#side-nav a[href="#documentos/comunicados"]').click();
     await seedPage.getByRole('button', {name: 'Novo comunicado'}).click();
     await seedPage.locator('#comunicados-form-panel [name="title"]').fill('Teste fictício de comunicado');
@@ -36,6 +42,11 @@ async function main() {
     await seedPage.locator('#comunicados-form-panel [name="body"]').fill('Mensagem demonstrativa.');
     await seedPage.getByRole('button', {name: 'Salvar comunicado'}).click();
     assert.equal(await seedPage.locator('#notices-list .documental-row').count(), 2);
+    await seedPage.locator('#notices-list .documental-row').filter({hasText: 'Teste fictício de comunicado'}).locator('.documental-open').click();
+    assert.equal(await seedPage.locator('#document-preview').isVisible(), true);
+    assert.match(await seedPage.locator('#document-preview-paper').textContent(), /Condomínio SQS 110 F/);
+    assert.match(await seedPage.locator('#document-preview-paper').textContent(), /Mensagem demonstrativa/);
+    await seedPage.getByRole('button', {name: 'Fechar prévia'}).click();
     await seedPage.reload();
     await seedPage.locator('.top-nav [data-area="documentos"]').click();
     await seedPage.locator('#side-nav a[href="#documentos/comunicados"]').click();
