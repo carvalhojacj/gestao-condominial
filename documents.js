@@ -93,10 +93,24 @@
       } else item[name] = clean(value, label, limit, required);
     }
     if (kind === 'assembleias') {
+      if (raw.attendanceConfirmed !== undefined && typeof raw.attendanceConfirmed !== 'boolean') throw new Error('Confirmação de presença inválida.');
+      item.attendanceConfirmed = raw.attendanceConfirmed === true;
       const people = item.participants.split('\n').map(line => line.trim()).filter(Boolean);
       if (people.length > 60 || people.some(line => !/^[^|\n]{1,40}\s*\|\s*[^|\n]{1,100}$/.test(line))) {
         throw new Error('Presenças: use até 60 linhas no formato Unidade | Nome.');
       }
+      const topics = item.agenda.split('\n').map(line => line.trim()).filter(Boolean);
+      if (topics.length > 20 || topics.some(topic => topic.length > 200)) {
+        throw new Error('Pauta: use até 20 assuntos com 200 caracteres cada.');
+      }
+      const legacy = item.deliberations.split('\n');
+      const resolutions = raw.resolutions === undefined
+        ? legacy.length === topics.length ? legacy : []
+        : raw.resolutions;
+      if (!Array.isArray(resolutions) || resolutions.length > topics.length || resolutions.some(value => typeof value !== 'string')) {
+        throw new Error('Deliberações inválidas.');
+      }
+      item.resolutions = topics.map((_, index) => clean(resolutions[index] || '', 'Deliberação', 4000));
     }
     return item;
   }
@@ -124,6 +138,7 @@
     const heading = document.createElement('h4'); heading.textContent = item.title;
     const meta = document.createElement('p'); meta.className = 'document-row-meta';
     meta.textContent = `${item.subtype || item.kind || 'Financeiro'} · ${formattedDate(item.date || item.dueDate)}${item.status ? ` · ${item.status}` : ''}${item.unit ? ` · Unidade ${item.unit}` : ''}`;
+    if (item.kind === 'assembleias') meta.textContent += item.attendanceConfirmed ? ` · ${item.participants.split('\n').filter(Boolean).length} presença(s) informada(s)` : ' · Presenças a confirmar';
     main.append(heading, meta);
     const actions = document.createElement('div'); actions.className = 'actions';
     if (finance) {
@@ -131,7 +146,7 @@
     } else {
       actions.append(button('Editar', edit, item));
       if (item.kind === 'assembleias') {
-        actions.append(button('Convocação', meetingNotice, item), button('Lista de presença', attendance, item), button('Minuta da ata', printItem, item));
+        actions.append(button('Convocação', meetingNotice, item), button('Protocolo de entrega', deliveryProtocol, item), button('Lista de presença', attendance, item), button('Minuta da ata', printItem, item));
       } else actions.append(button('Imprimir', printItem, item));
       actions.append(button('Excluir', remove, item));
     }
@@ -158,12 +173,86 @@
     }
   }
   function render() { Object.keys(lists).forEach(renderKind); }
+  function meetingEditor(form, item) {
+    const editor = document.createElement('div'); editor.className = 'meeting-editor wide';
+    const topicsTitle = document.createElement('h5'); topicsTitle.textContent = 'Pauta e deliberações';
+    const topicsHelp = document.createElement('p'); topicsHelp.className = 'section-intro';
+    topicsHelp.textContent = 'Registre cada assunto separadamente. Preencha a decisão somente após a reunião.';
+    const topicList = document.createElement('div'); topicList.className = 'meeting-topic-list'; topicList.setAttribute('role', 'group'); topicList.setAttribute('aria-label', 'Assuntos da pauta');
+    const addTopic = (topic = '', resolution = '') => {
+      if (topicList.children.length >= 20) { message('A pauta aceita até 20 assuntos.', 'notice'); return; }
+      const row = document.createElement('div'); row.className = 'meeting-topic-row';
+      const topicLabel = document.createElement('label'); topicLabel.textContent = 'Assunto da pauta *';
+      const topicInput = document.createElement('input'); topicInput.type = 'text'; topicInput.maxLength = 200; topicInput.required = true; topicInput.value = topic;
+      topicLabel.append(topicInput);
+      const decisionLabel = document.createElement('label'); decisionLabel.textContent = 'Discussão e decisão (minuta)';
+      const decisionInput = document.createElement('textarea'); decisionInput.maxLength = 4000; decisionInput.value = resolution;
+      decisionLabel.append(decisionInput);
+      const removeTopic = button('Remover assunto', () => { if (topicList.children.length > 1) row.remove(); }, null);
+      row.append(topicLabel, decisionLabel, removeTopic); topicList.append(row);
+    };
+    const existingTopics = item?.agenda.split('\n').map(value => value.trim()).filter(Boolean) || [];
+    if (existingTopics.length) existingTopics.forEach((topic, index) => addTopic(topic, item.resolutions?.[index] || ''));
+    else addTopic();
+    let oldNote = null;
+    if (item?.deliberations && !item.resolutions?.some(Boolean)) {
+      oldNote = document.createElement('p'); oldNote.className = 'meeting-legacy-note';
+      oldNote.textContent = `Anotação anterior sem vínculo à pauta (preservada para consulta): ${item.deliberations}`;
+    }
+    const addTopicButton = button('Adicionar assunto', () => { addTopic(); topicList.lastElementChild?.querySelector('input')?.focus(); }, null);
+    const peopleTitle = document.createElement('h5'); peopleTitle.textContent = 'Lista de participantes';
+    const peopleHelp = document.createElement('p'); peopleHelp.className = 'section-intro';
+    peopleHelp.textContent = 'Marque somente quem compareceu. Os moradores fictícios aparecem como opções; a lista para assinatura também pode ser impressa antes da reunião.';
+    const peopleList = document.createElement('div'); peopleList.className = 'meeting-people-list'; peopleList.setAttribute('role', 'group'); peopleList.setAttribute('aria-label', 'Participantes com presença confirmada');
+    const selected = new Set((item?.attendanceConfirmed ? item.participants : '').split('\n').map(value => value.trim()).filter(Boolean));
+    const candidates = new Map();
+    for (const resident of window.demoDirectory.exportData().residents) candidates.set(`${resident.unit} | ${resident.name}`, [resident.unit, resident.name]);
+    for (const line of (item?.participants || '').split('\n').map(value => value.trim()).filter(Boolean)) {
+      const [unit, name] = line.split('|').map(value => value.trim());
+      candidates.set(`${unit} | ${name}`, [unit, name]);
+    }
+    const addPerson = (unit, name) => {
+      if (peopleList.children.length >= 60) { message('A lista aceita até 60 participantes.', 'notice'); return; }
+      const key = `${unit} | ${name}`;
+      if ([...peopleList.querySelectorAll('input[type="checkbox"]')].some(box => box.value === key)) return;
+      const label = document.createElement('label'); label.className = 'meeting-person';
+      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.value = key; checkbox.checked = selected.has(key);
+      const text = document.createElement('span'); text.textContent = `Unidade ${unit} · ${name}`;
+      label.append(checkbox, text); peopleList.append(label);
+    };
+    [...candidates.values()].sort((a, b) => a[0].localeCompare(b[0], 'pt-BR', {numeric: true})).forEach(([unit, name]) => addPerson(unit, name));
+    const extra = document.createElement('div'); extra.className = 'meeting-extra';
+    const unitLabel = document.createElement('label'); unitLabel.textContent = 'Outra unidade fictícia';
+    const unitInput = document.createElement('input'); unitInput.type = 'text'; unitInput.maxLength = 40; unitLabel.append(unitInput);
+    const nameLabel = document.createElement('label'); nameLabel.textContent = 'Participante ou representante fictício';
+    const nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.maxLength = 100; nameLabel.append(nameInput);
+    const addPersonButton = button('Adicionar à lista', () => {
+      const unit = unitInput.value.trim(); const name = nameInput.value.trim();
+      if (!unit || !name || unit.includes('|') || name.includes('|')) { message('Informe unidade e nome fictícios, sem o caractere |.', 'notice'); return; }
+      addPerson(unit, name); unitInput.value = ''; nameInput.value = '';
+    }, null);
+    extra.append(unitLabel, nameLabel, addPersonButton);
+    editor.append(topicsTitle, topicsHelp, topicList, addTopicButton);
+    if (oldNote) editor.append(oldNote);
+    editor.append(peopleTitle, peopleHelp, peopleList, extra);
+    form.append(editor);
+    return () => {
+      const rows = [...topicList.children];
+      const agenda = rows.map(row => row.querySelector('input').value.trim());
+      if (agenda.some(value => !value)) throw new Error('Preencha todos os assuntos da pauta.');
+      const resolutions = rows.map(row => row.querySelector('textarea').value.trim());
+      const participants = [...peopleList.querySelectorAll('input[type="checkbox"]:checked')].map(box => box.value);
+      return {agenda: agenda.join('\n'), deliberations: item?.deliberations || '', resolutions, participants: participants.join('\n'), attendanceConfirmed: participants.length > 0};
+    };
+  }
   function openForm(kind, item = null) {
     Object.keys(fields).forEach(area => { $(`${area}-form-panel`).hidden = true; });
     const panel = $(`${kind}-form-panel`); panel.replaceChildren(); panel.hidden = false;
     const title = document.createElement('h4'); title.textContent = `${item ? 'Editar' : 'Novo'} ${labels[kind]}`;
     const form = document.createElement('form'); form.className = 'form-grid compact-form';
+    let statusField = null;
     for (const [name, label, type, limit, required] of fields[kind]) {
+      if (kind === 'assembleias' && ['agenda', 'participants', 'deliberations'].includes(name)) continue;
       const wrapper = document.createElement('label');
       if (type === 'textarea' || type === 'url') wrapper.className = 'wide';
       wrapper.append(document.createTextNode(`${label}${required ? ' *' : ''}`));
@@ -176,22 +265,30 @@
       if (typeof limit === 'number') input.maxLength = limit;
       input.name = name; input.required = Boolean(required);
       if (item) input.value = item[name] || '';
-      wrapper.append(input); form.append(wrapper);
+      wrapper.append(input);
+      if (kind === 'assembleias' && name === 'status') statusField = wrapper;
+      else form.append(wrapper);
     }
+    const collectMeeting = kind === 'assembleias' ? meetingEditor(form, item) : null;
+    if (statusField) form.append(statusField);
     const actions = document.createElement('div'); actions.className = 'actions wide';
     const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = `Salvar ${labels[kind]}`;
-    const cancel = button('Cancelar', () => { panel.hidden = true; panel.replaceChildren(); }, item);
+    const cancel = button('Cancelar', () => { panel.hidden = true; panel.replaceChildren(); document.querySelector(`[data-doc-new="${kind}"]`)?.focus(); }, item);
     actions.append(submit, cancel); form.append(actions); panel.append(title, form);
     form.addEventListener('submit', event => {
       event.preventDefault();
       try {
         if (storageCorrupt) throw new Error('Os documentos salvos não puderam ser lidos. Importe uma cópia antes de editar.');
         const raw = {id: item?.id || (globalThis.crypto?.randomUUID?.() || `doc-${Date.now()}-${Math.random().toString(36).slice(2)}`), kind};
-        for (const [name] of fields[kind]) raw[name] = form.elements[name].value;
+        for (const [name] of fields[kind]) {
+          if (collectMeeting && ['agenda', 'participants', 'deliberations'].includes(name)) continue;
+          raw[name] = form.elements[name].value;
+        }
+        if (collectMeeting) Object.assign(raw, collectMeeting());
         const next = normalize(raw);
         if (!item && items.length >= MAX_ITEMS) throw new Error('Limite de documentos atingido.');
         items = item ? items.map(current => current.id === item.id ? next : current) : [...items, next];
-        panel.hidden = true; panel.replaceChildren(); render();
+        panel.hidden = true; panel.replaceChildren(); render(); document.querySelector(`[data-doc-new="${kind}"]`)?.focus();
         const saved = save();
         message(saved ? `${labels[kind][0].toUpperCase()}${labels[kind].slice(1)} salvo.` : 'Registro atualizado apenas nesta sessão.', saved ? 'success' : 'notice');
       } catch (error) { message(error.message, 'notice'); }
@@ -215,7 +312,10 @@
     const value = name => escapeHtml(item[name]);
     let content = `<h1>${value('title')}</h1><p>${value('subtype')} · ${formattedDate(item.date || item.dueDate)}</p>`;
     if (item.kind === 'assembleias') {
-      content += `<p><strong>Horário:</strong> ${value('time')} &nbsp; <strong>Local:</strong> ${value('location')}</p><p><strong>Presidente:</strong> ${value('chair')} &nbsp; <strong>Secretário(a):</strong> ${value('secretary')}</p><h2>Pauta</h2><p>${value('agenda')}</p><h2>Presenças informadas</h2><p>${value('participants')}</p><h2>Discussões e deliberações a revisar</h2><p>${value('deliberations') || 'Pendente de registro.'}</p><p>Assinatura do presidente: __________________________________</p><p>Assinatura do secretário(a): ________________________________</p>`;
+      const topics = item.agenda.split('\n').map(line => line.trim()).filter(Boolean);
+      const decisions = topics.map((topic, index) => `<h2>${index + 1}. ${escapeHtml(topic)}</h2><p>${escapeHtml(item.resolutions?.[index]) || 'Discussão e deliberação pendentes de registro.'}</p>`).join('');
+      const oldNote = item.deliberations && !item.resolutions?.some(Boolean) ? `<h2>Anotação anterior sem vínculo à pauta</h2><p>${value('deliberations')}</p>` : '';
+      content += `<p><strong>Horário:</strong> ${value('time')} &nbsp; <strong>Local:</strong> ${value('location')}</p><p><strong>Presidente:</strong> ${value('chair')} &nbsp; <strong>Secretário(a):</strong> ${value('secretary')}</p><h2>Presenças</h2><p>${item.attendanceConfirmed ? value('participants') : 'Presenças ainda não confirmadas para esta minuta.'}</p><h2>Itens da pauta e deliberações a revisar</h2>${decisions}${oldNote}<p>Assinatura do presidente: __________________________________</p><p>Assinatura do secretário(a): ________________________________</p>`;
     } else if (item.kind === 'comunicados') content += `<p><strong>Destinatários:</strong> ${value('audience')}</p><p>${value('body')}</p><p><strong>Meio de divulgação informado:</strong> ${value('channel')}</p>`;
     else if (item.kind === 'ocorrencias') content += `<p><strong>Unidade fictícia:</strong> ${value('unit')}</p><p>${value('body')}</p><p><strong>Regra a conferir:</strong> ${value('rule')}</p><p><strong>Evidência fictícia:</strong> ${value('evidence')}</p><p><strong>Situação:</strong> ${value('status')}</p>`;
     else content += `<p>${value('body')}</p>${item.dueDate ? `<p><strong>Vencimento informado:</strong> ${formattedDate(item.dueDate)}</p>` : ''}`;
@@ -224,20 +324,29 @@
   function meetingNotice(item) {
     printPage(`Convocação · ${item.title}`, `<h1>Convocação para assembleia ${escapeHtml(item.subtype)}</h1><p><strong>Assunto:</strong> ${escapeHtml(item.title)}</p><p><strong>Data:</strong> ${formattedDate(item.date)} &nbsp; <strong>Horário:</strong> ${escapeHtml(item.time)} &nbsp; <strong>Local:</strong> ${escapeHtml(item.location)}</p><h2>Ordem do dia</h2><p>${escapeHtml(item.agenda)}</p><p>Prazo e forma de convocação: conferir a convenção do condomínio.</p>`);
   }
+  function deliveryProtocol(item) {
+    const residents = window.demoDirectory.exportData().residents;
+    const rows = (residents.length ? residents : [{unit:'_____',name:'______________________________'}])
+      .sort((a, b) => a.unit.localeCompare(b.unit, 'pt-BR', {numeric: true}))
+      .map(person => `<tr><td>${escapeHtml(person.unit)}</td><td>${escapeHtml(person.name)}</td><td>________________________</td><td>____/____/________</td></tr>`).join('');
+    printPage(`Protocolo de convocação · ${item.title}`, `<h1>Protocolo de entrega da convocação</h1><p>Assembleia ${escapeHtml(item.subtype)} · ${formattedDate(item.date)} · ${escapeHtml(item.title)}</p><table><thead><tr><th>Unidade</th><th>Destinatário previsto</th><th>Assinatura ou forma de entrega</th><th>Data</th></tr></thead><tbody>${rows}</tbody></table><p>Preencha a forma e a data efetivas da entrega. Confira a convenção e as regras aplicáveis.</p>`);
+  }
   function attendance(item) {
-    const entries = item.participants.split('\n').map(line => line.trim()).filter(Boolean);
-    const rows = (entries.length ? entries : ['_____ | ______________________________']).map(line => {
+    const entries = new Set(item.participants.split('\n').map(line => line.trim()).filter(Boolean));
+    for (const resident of window.demoDirectory.exportData().residents) entries.add(`${resident.unit} | ${resident.name}`);
+    const roster = entries.size ? [...entries].sort((a, b) => a.split('|')[0].trim().localeCompare(b.split('|')[0].trim(), 'pt-BR', {numeric: true})) : ['_____ | ______________________________'];
+    const rows = roster.map(line => {
       const [unit, name] = line.split('|').map(value => escapeHtml(value.trim()));
       return `<tr><td>${unit}</td><td>${name}</td><td>________________________</td></tr>`;
     }).join('');
-    printPage(`Lista de presença · ${item.title}`, `<h1>Lista de presença</h1><p>Assembleia ${escapeHtml(item.subtype)} · ${formattedDate(item.date)} · ${escapeHtml(item.time)} · ${escapeHtml(item.location)}</p><table><thead><tr><th>Unidade</th><th>Participante informado</th><th>Assinatura presencial</th></tr></thead><tbody>${rows}</tbody></table><p>Presenças e representação devem ser conferidas no dia da assembleia.</p>`);
+    printPage(`Lista de presença · ${item.title}`, `<h1>Lista preparatória de presença</h1><p>Assembleia ${escapeHtml(item.subtype)} · ${formattedDate(item.date)} · ${escapeHtml(item.time)} · ${escapeHtml(item.location)}</p><table><thead><tr><th>Unidade</th><th>Participante previsto</th><th>Assinatura presencial</th></tr></thead><tbody>${rows}</tbody></table><p>Confirme presencialmente quem compareceu e a representação de cada unidade.</p>`);
   }
   function addExamples() {
     if (storageCorrupt) throw new Error('Os documentos salvos não puderam ser lidos.');
     const examples = [
       {id:'demo-doc-convencao',kind:'acervo',subtype:'Convenção ou regimento',title:'Convenção condominial (exemplo)',date:'2026-01-15',url:'',body:'Registro fictício para demonstrar a organização do acervo.'},
       {id:'demo-doc-seguro',kind:'prazos',subtype:'Seguro',title:'Renovação do seguro da edificação (exemplo)',date:'2026-11-01',dueDate:'2027-01-31',body:'Prazo demonstrativo; conferir a apólice e sua vigência real.'},
-      {id:'demo-doc-assembleia',kind:'assembleias',subtype:'Ordinária',title:'Prestação de contas e plano anual (exemplo)',date:'2026-12-10',time:'19:00',location:'Salão de reuniões fictício',agenda:'Prestação de contas\nPrevisão orçamentária\nEleição do corpo diretivo',participants:'101 | Morador Exemplo A\n202 | Moradora Exemplo B',chair:'',secretary:'',deliberations:'',status:'Planejada'},
+      {id:'demo-doc-assembleia',kind:'assembleias',subtype:'Ordinária',title:'Prestação de contas e plano anual (exemplo)',date:'2026-12-10',time:'19:00',location:'Salão de reuniões fictício',agenda:'Prestação de contas\nPrevisão orçamentária\nEleição do corpo diretivo',participants:'',chair:'',secretary:'',deliberations:'',status:'Planejada'},
       {id:'demo-doc-aviso',kind:'comunicados',subtype:'Aviso',title:'Manutenção das bombas (exemplo)',date:'2026-11-12',audience:'Moradores fictícios',body:'A manutenção demonstrativa das bombas está prevista para o período da manhã.',channel:'Mural fictício',status:'Rascunho'},
       {id:'demo-doc-ocorrencia',kind:'ocorrencias',subtype:'Ocorrência',title:'Ruído em área comum (exemplo)',date:'2026-11-05',unit:'303',body:'Registro inteiramente fictício de relato sobre ruído fora do horário previsto.',rule:'Conferir a convenção e o regimento.',evidence:'Relato fictício, sem arquivo anexado.',status:'Em análise'}
     ].map(normalize);

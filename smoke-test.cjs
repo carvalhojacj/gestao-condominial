@@ -21,6 +21,13 @@ async function main() {
     assert.equal(await seedPage.locator('#archive-count').textContent(), '12');
     await seedPage.locator('#side-nav a[href="#documentos/assembleias"]').click();
     assert.equal(await seedPage.locator('#meetings-list .documental-row').count(), 1);
+    await seedPage.locator('#meetings-list .documental-row').getByRole('button', {name: 'Editar'}).click();
+    assert.equal(await seedPage.locator('#assembleias-form-panel .meeting-topic-row').count(), 3);
+    assert.equal(await seedPage.locator('#assembleias-form-panel .meeting-person').count(), 4);
+    await seedPage.locator('#assembleias-form-panel .meeting-topic-row').first().locator('textarea').fill('Discussão fictícia registrada para a minuta.');
+    await seedPage.locator('#assembleias-form-panel .meeting-person').first().locator('input').check();
+    await seedPage.getByRole('button', {name: 'Salvar assembleia'}).click();
+    assert.match(await seedPage.locator('#meetings-list .documental-row').textContent(), /1 presença\(s\) informada\(s\)/);
     await seedPage.locator('#side-nav a[href="#documentos/comunicados"]').click();
     await seedPage.getByRole('button', {name: 'Novo comunicado'}).click();
     await seedPage.locator('#comunicados-form-panel [name="title"]').fill('Teste fictício de comunicado');
